@@ -1,31 +1,34 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { ArrowLeft, MapPin, CalendarDays, Pencil, Trash2, Loader2 } from "lucide-react";
+import {
+  ArrowLeft, MapPin, CalendarDays, Trash2, Loader2, Download, FileText, ShieldCheck,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { SeverityBadge, StatusBadge } from "@/components/incidents/IncidentBadge";
-import IncidentSheet from "@/components/incidents/IncidentSheet";
-import { Image } from "@/components/ui/image";
+import { CATEGORY_LABELS } from "@/components/incidents/CategorySelect";
+import AttachmentInput from "@/components/incidents/AttachmentInput";
 import { formatRelative, formatDate } from "@/lib/dates";
+import {
+  getAttachments, addInMemoryAttachment, deleteAttachment, deleteAttachmentsForIncident,
+} from "@/lib/attachments";
+import { exportReportPDF } from "@/lib/pdfExport";
 
-const STATUSES = ["open", "in_progress", "resolved", "closed"];
+const STATUSES = ["reported", "in_review", "escalated", "resolved", "closed"];
 
 export default function IncidentDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [incident, setIncident] = useState(null);
+  const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [sheetOpen, setSheetOpen] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -33,6 +36,7 @@ export default function IncidentDetail() {
       const data = await base44.entities.Incident.get(id);
       setIncident(data);
       setNotFound(!data);
+      try { setAttachments(await getAttachments(id)); } catch { setAttachments([]); }
     } catch (e) {
       setNotFound(true);
     } finally {
@@ -40,9 +44,7 @@ export default function IncidentDetail() {
     }
   }
 
-  useEffect(() => {
-    load();
-  }, [id]);
+  useEffect(() => { load(); }, [id]);
 
   async function changeStatus(next) {
     if (!incident || next === incident.status) return;
@@ -50,22 +52,41 @@ export default function IncidentDetail() {
     try {
       const updated = await base44.entities.Incident.update(incident.id, { status: next });
       setIncident(updated);
-    } catch (e) {
-      // ignore
-    } finally {
-      setUpdating(false);
+    } catch (e) {} finally { setUpdating(false); }
+  }
+
+  async function handleAdd(att) {
+    try {
+      const saved = await addInMemoryAttachment(incident.id, att);
+      setAttachments((prev) => [...prev, saved]);
+    } catch (e) {}
+  }
+
+  async function handleRemove(idx) {
+    const att = attachments[idx];
+    setAttachments((prev) => prev.filter((_, i) => i !== idx));
+    if (att?.id != null) {
+      try { await deleteAttachment(att.id); } catch {}
     }
   }
 
   async function handleDelete() {
     if (!incident) return;
-    if (!confirm("Delete this incident? This can't be undone.")) return;
+    if (!confirm("Delete this report? This can't be undone.")) return;
     setDeleting(true);
     try {
+      await deleteAttachmentsForIncident(incident.id);
       await base44.entities.Incident.delete(incident.id);
       navigate("/");
-    } catch (e) {
-      setDeleting(false);
+    } catch (e) { setDeleting(false); }
+  }
+
+  function handleExport() {
+    setExporting(true);
+    try {
+      exportReportPDF(incident, attachments);
+    } finally {
+      setTimeout(() => setExporting(false), 500);
     }
   }
 
@@ -80,8 +101,8 @@ export default function IncidentDetail() {
   if (notFound) {
     return (
       <div className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-3 px-6 text-center">
-        <p className="text-lg font-semibold text-slate-800">Incident not found</p>
-        <Link to="/" className="text-sm text-slate-500 underline">Back to incidents</Link>
+        <p className="text-lg font-semibold text-slate-800">Report not found</p>
+        <Link to="/" className="text-sm text-slate-500 underline">Back to reports</Link>
       </div>
     );
   }
@@ -89,27 +110,18 @@ export default function IncidentDetail() {
   return (
     <div className="mx-auto min-h-dvh max-w-md bg-slate-50">
       <header className="sticky top-0 z-20 flex items-center justify-between bg-white/85 px-4 py-3 backdrop-blur-md">
-        <Link
-          to="/"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
-        >
+        <Link to="/" className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100">
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-full"
-            onClick={() => setSheetOpen(true)}
-          >
-            <Pencil className="mr-1 h-4 w-4" /> Edit
+          <Button variant="outline" size="sm" className="rounded-full" onClick={handleExport} disabled={exporting}>
+            {exporting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Download className="mr-1 h-4 w-4" />}
+            PDF
           </Button>
           <Button
-            variant="outline"
-            size="sm"
+            variant="outline" size="sm"
             className="rounded-full text-rose-600 hover:bg-rose-50"
-            onClick={handleDelete}
-            disabled={deleting}
+            onClick={handleDelete} disabled={deleting}
           >
             {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
           </Button>
@@ -120,29 +132,15 @@ export default function IncidentDetail() {
         <div className="flex flex-wrap items-center gap-2">
           <SeverityBadge severity={incident.severity} />
           <StatusBadge status={incident.status} />
-          <span className="text-xs text-slate-400 capitalize">{incident.category}</span>
+          <span className="text-xs text-slate-400">{CATEGORY_LABELS[incident.category] || incident.category}</span>
         </div>
 
-        <h1 className="mt-3 text-xl font-semibold leading-snug text-slate-900">
-          {incident.title}
-        </h1>
-
-        {incident.photo_url && (
-          <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-            <Image
-              src={incident.photo_url}
-              alt={incident.title}
-              className="h-56 w-full object-cover"
-              fittingType="fill"
-            />
-          </div>
-        )}
+        <h1 className="mt-3 text-xl font-semibold leading-snug text-slate-900">{incident.title}</h1>
 
         <div className="mt-4 space-y-2 rounded-2xl border border-slate-200 bg-white p-4">
           {incident.location && (
             <div className="flex items-center gap-2 text-sm text-slate-600">
-              <MapPin className="h-4 w-4 text-slate-400" />
-              {incident.location}
+              <MapPin className="h-4 w-4 text-slate-400" /> {incident.location}
             </div>
           )}
           <div className="flex items-center gap-2 text-sm text-slate-600">
@@ -151,22 +149,43 @@ export default function IncidentDetail() {
           </div>
         </div>
 
-        {incident.description && (
-          <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Description</h2>
-            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
-              {incident.description}
-            </p>
+        {/* AI Report */}
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-slate-400" />
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              Professional Report
+            </h2>
           </div>
-        )}
+          {incident.ai_report ? (
+            <pre className="mt-2 max-h-72 overflow-y-auto whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-slate-700">
+              {incident.ai_report}
+            </pre>
+          ) : (
+            <p className="mt-2 text-sm text-slate-400">No AI report was generated for this incident.</p>
+          )}
+        </div>
 
+        {/* Attachments (local only) */}
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Attachments</h2>
+          <div className="mt-3">
+            <AttachmentInput
+              attachments={attachments}
+              onAdd={handleAdd}
+              onRemove={handleRemove}
+            />
+          </div>
+          <div className="mt-2 flex items-start gap-2 text-xs text-slate-400">
+            <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" />
+            <p>Stored only on this device. They are included when you export the PDF.</p>
+          </div>
+        </div>
+
+        {/* Status */}
         <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Status</h2>
-          <Select
-            value={incident.status}
-            onValueChange={changeStatus}
-            disabled={updating}
-          >
+          <Select value={incident.status} onValueChange={changeStatus} disabled={updating}>
             <SelectTrigger className="mt-2 capitalize">
               {updating ? <Loader2 className="h-4 w-4 animate-spin" /> : <SelectValue />}
             </SelectTrigger>
@@ -177,14 +196,24 @@ export default function IncidentDetail() {
             </SelectContent>
           </Select>
         </div>
-      </main>
 
-      <IncidentSheet
-        open={sheetOpen}
-        onOpenChange={setSheetOpen}
-        incident={incident}
-        onSaved={(saved) => setIncident(saved)}
-      />
+        {/* Find authorities */}
+        <Link
+          to="/authorities"
+          className="mt-4 flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 hover:bg-slate-50"
+        >
+          <div className="flex items-center gap-3">
+            <div className="rounded-xl bg-rose-50 p-2">
+              <MapPin className="h-5 w-5 text-rose-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-900">Find nearby authorities</p>
+              <p className="text-xs text-slate-400">Police stations & government offices near you</p>
+            </div>
+          </div>
+          <ArrowLeft className="h-4 w-4 rotate-180 text-slate-300" />
+        </Link>
+      </main>
     </div>
   );
 }

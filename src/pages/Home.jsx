@@ -1,27 +1,20 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Plus, Search, SlidersHorizontal, ShieldAlert, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Plus, Search, ShieldAlert, Loader2, MapPin, ShieldCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import IncidentCard from "@/components/incidents/IncidentCard";
-import IncidentSheet from "@/components/incidents/IncidentSheet";
 import StatPills from "@/components/incidents/StatPills";
 
-const STATUSES = ["all", "open", "in_progress", "resolved", "closed"];
+const STATUSES = ["all", "reported", "in_review", "escalated", "resolved", "closed"];
 
 export default function Home() {
   const [incidents, setIncidents] = useState(null);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [editing, setEditing] = useState(null);
 
   async function load() {
     try {
@@ -32,9 +25,7 @@ export default function Home() {
     }
   }
 
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
   const filtered = useMemo(() => {
     if (!incidents) return [];
@@ -50,34 +41,29 @@ export default function Home() {
     });
   }, [incidents, query, status]);
 
-  function handleSaved(saved) {
-    setIncidents((prev) => {
-      if (!prev) return [saved];
-      const exists = prev.some((i) => i.id === saved.id);
-      return exists
-        ? prev.map((i) => (i.id === saved.id ? saved : i))
-        : [saved, ...prev];
-    });
-    setEditing(null);
-  }
-
   return (
     <div className="mx-auto min-h-dvh max-w-md bg-slate-50">
-      {/* Header */}
       <header className="sticky top-0 z-20 bg-white/85 px-5 pb-3 pt-5 backdrop-blur-md">
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-slate-400">Incident Log</p>
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Incidents</h1>
+            <p className="text-xs font-medium uppercase tracking-wider text-slate-400">Cyber Incident Reporter</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Your reports</h1>
           </div>
-          <Button
-            size="icon"
-            className="h-11 w-11 rounded-full shadow-sm"
-            onClick={() => { setEditing(null); setSheetOpen(true); }}
+          <Link
+            to="/authorities"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm hover:bg-slate-50"
+            aria-label="Find nearby authorities"
           >
-            <Plus className="h-5 w-5" />
-          </Button>
+            <MapPin className="h-5 w-5" />
+          </Link>
         </div>
+
+        <Link
+          to="/new"
+          className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white shadow-sm transition active:scale-[0.99]"
+        >
+          <Plus className="h-4 w-4" /> Report a new incident
+        </Link>
 
         <div className="mt-4 flex gap-2">
           <div className="relative flex-1">
@@ -85,13 +71,12 @@ export default function Home() {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search incidents"
+              placeholder="Search reports"
               className="rounded-full border-slate-200 bg-slate-100 pl-9"
             />
           </div>
           <Select value={status} onValueChange={setStatus}>
             <SelectTrigger className="w-[8.5rem] rounded-full border-slate-200 bg-slate-100 capitalize">
-              <SlidersHorizontal className="mr-1 h-4 w-4 text-slate-400" />
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -107,8 +92,7 @@ export default function Home() {
         <StatPills incidents={incidents} />
       </header>
 
-      {/* List */}
-      <main className="px-5 pb-28 pt-2">
+      <main className="px-5 pb-16 pt-2">
         {incidents === null ? (
           <div className="flex items-center justify-center py-20 text-slate-400">
             <Loader2 className="h-6 w-6 animate-spin" />
@@ -119,11 +103,11 @@ export default function Home() {
               <ShieldAlert className="h-8 w-8" />
             </div>
             <p className="mt-3 text-sm font-medium text-slate-600">
-              {incidents.length === 0 ? "No incidents logged yet" : "No matches"}
+              {incidents.length === 0 ? "No incidents reported yet" : "No matches"}
             </p>
             <p className="mt-1 text-xs">
               {incidents.length === 0
-                ? "Tap the + button to record your first one."
+                ? "Tap “Report a new incident” to begin."
                 : "Try a different search or filter."}
             </p>
           </div>
@@ -134,23 +118,12 @@ export default function Home() {
             ))}
           </div>
         )}
+
+        <div className="mt-6 flex items-start gap-2 rounded-2xl bg-slate-100 p-3 text-xs text-slate-500">
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+          <p>Photos and screenshots you attach are stored only on this device for your privacy.</p>
+        </div>
       </main>
-
-      {/* Floating action button for mobile reach */}
-      <button
-        onClick={() => { setEditing(null); setSheetOpen(true); }}
-        className="fixed bottom-6 left-1/2 z-30 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg shadow-slate-900/30 transition active:scale-95 sm:hidden"
-        aria-label="Log incident"
-      >
-        <Plus className="h-6 w-6" />
-      </button>
-
-      <IncidentSheet
-        open={sheetOpen}
-        onOpenChange={(o) => { setSheetOpen(o); if (!o) setEditing(null); }}
-        incident={editing}
-        onSaved={handleSaved}
-      />
     </div>
   );
 }

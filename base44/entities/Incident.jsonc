@@ -5,14 +5,14 @@
     "title": {
       "type": "string",
       "title": "Title",
-      "description": "Short summary of the incident",
+      "description": "Short summary of the cybersecurity incident",
       "minLength": 3,
-      "maxLength": 120
+      "maxLength": 140
     },
     "description": {
       "type": "string",
       "title": "Description",
-      "description": "Detailed account of what happened"
+      "description": "Firsthand account of what happened, in the reporter's words"
     },
     "severity": {
       "type": "string",
@@ -28,11 +28,17 @@
     "category": {
       "type": "string",
       "enum": [
-        "safety",
-        "security",
-        "environmental",
-        "equipment",
-        "personnel",
+        "phishing",
+        "malware",
+        "ransomware",
+        "data_breach",
+        "unauthorized_access",
+        "social_engineering",
+        "ddos",
+        "account_compromise",
+        "insider_threat",
+        "identity_theft",
+        "online_fraud",
         "other"
       ],
       "title": "Category",
@@ -41,29 +47,34 @@
     "status": {
       "type": "string",
       "enum": [
-        "open",
-        "in_progress",
+        "reported",
+        "in_review",
+        "escalated",
         "resolved",
         "closed"
       ],
       "title": "Status",
-      "default": "open"
+      "default": "reported"
     },
     "location": {
       "type": "string",
       "title": "Location",
-      "description": "Where the incident occurred"
+      "description": "Where the incident occurred or was observed"
     },
     "incident_date": {
       "type": "string",
       "format": "date-time",
       "title": "Incident Date"
     },
-    "photo_url": {
+    "ai_report": {
       "type": "string",
-      "format": "uri",
-      "title": "Photo",
-      "description": "Optional photo of the incident scene"
+      "title": "AI Report",
+      "description": "AI-generated professional report derived from the text description only"
+    },
+    "report_generated_date": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Report Generated Date"
     }
   },
   "required": [

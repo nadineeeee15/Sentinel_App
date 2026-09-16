@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 
 export default function StatPills({ incidents }) {
   const counts = useMemo(() => {
-    const base = { open: 0, in_progress: 0, resolved: 0, closed: 0 };
+    const base = { reported: 0, in_review: 0, escalated: 0, resolved: 0, closed: 0 };
     if (!incidents) return { ...base, total: 0 };
     return incidents.reduce(
       (acc, i) => {
@@ -15,8 +15,8 @@ export default function StatPills({ incidents }) {
   }, [incidents]);
 
   const pills = [
-    { label: "Open", value: counts.open, tone: "text-rose-600" },
-    { label: "Active", value: counts.in_progress, tone: "text-blue-600" },
+    { label: "Reported", value: counts.reported, tone: "text-rose-600" },
+    { label: "In review", value: counts.in_review, tone: "text-blue-600" },
     { label: "Resolved", value: counts.resolved, tone: "text-emerald-600" },
     { label: "Closed", value: counts.closed, tone: "text-slate-500" },
   ];
