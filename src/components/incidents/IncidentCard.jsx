@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { MapPin, CalendarDays, ChevronRight, FileText } from "lucide-react";
+import { MapPin, CalendarDays, ChevronRight, FileText, Hash } from "lucide-react";
 import { SeverityBadge, StatusBadge } from "./IncidentBadge";
 import { CATEGORY_LABELS } from "./CategorySelect";
 import { formatRelative } from "@/lib/dates";
@@ -13,6 +13,11 @@ export default function IncidentCard({ incident }) {
     >
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
+          {incident.report_number && (
+            <p className="mb-1.5 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-violet-300/70">
+              <Hash className="h-3 w-3" /> {incident.report_number}
+            </p>
+          )}
           <div className="flex flex-wrap items-center gap-2">
             <SeverityBadge severity={incident.severity} />
             <StatusBadge status={incident.status} />

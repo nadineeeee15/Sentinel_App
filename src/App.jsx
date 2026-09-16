@@ -19,6 +19,7 @@ import Authorities from '@/pages/Authorities';
 import AppLock from '@/components/AppLock';
 import AppLayout from '@/components/AppLayout';
 import Profile from '@/pages/Profile';
+import Reports from '@/pages/Reports';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -50,6 +51,7 @@ const AuthenticatedApp = () => {
         <Route element={<AppLock />}>
           <Route element={<AppLayout />}>
             <Route path="/" element={<Home />} />
+            <Route path="/reports" element={<Reports />} />
             <Route path="/authorities" element={<Authorities />} />
             <Route path="/profile" element={<Profile />} />
           </Route>

@@ -1,10 +1,11 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { Home, FilePlus, LifeBuoy, User } from "lucide-react";
+import { Home, FilePlus, LifeBuoy, User, FolderOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ITEMS = [
   { to: "/", label: "Home", icon: Home, end: true },
+  { to: "/reports", label: "Reports", icon: FolderOpen },
   { to: "/new", label: "Log", icon: FilePlus },
   { to: "/authorities", label: "Help", icon: LifeBuoy },
   { to: "/profile", label: "Profile", icon: User },
@@ -16,7 +17,7 @@ export default function BottomNav() {
       className="fixed bottom-0 left-1/2 z-30 w-full max-w-md -translate-x-1/2 border-t border-border bg-card/95 backdrop-blur-md"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div className="grid grid-cols-4">
+      <div className="grid grid-cols-5">
         {ITEMS.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
