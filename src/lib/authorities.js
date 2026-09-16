@@ -126,6 +126,42 @@ export async function getNearbyAuthorities(lat, lon, { radiusMeters = 10000, cat
   }
 }
 
+function kindFromType(cls, type) {
+  if (cls === "amenity" && type === "police") return "police";
+  if (cls === "amenity" && type === "fire_station") return "fire";
+  if (cls === "amenity" && type === "townhall") return "civic";
+  if (cls === "office" && type === "government") return "government";
+  return "other";
+}
+
+// Text-based search via Nominatim (OpenStreetMap). No GPS required — the user
+// types a department name / place, and we return matching places with their
+// phone and website (from OSM extratags) so the website link can open externally.
+export async function searchAuthorities(query) {
+  const q = query.trim();
+  if (!q) return [];
+  const url =
+    "https://nominatim.openstreetmap.org/search?q=" +
+    encodeURIComponent(q) +
+    "&format=json&extratags=1&addressdetails=1&limit=12";
+  const res = await fetchWithTimeout(url, { headers: { Accept: "application/json" } }, 12000);
+  if (!res.ok) throw new Error("Could not reach the map service. Try again in a moment.");
+  const json = await res.json();
+  return (json || []).map((r) => {
+    const tags = r.extratags || {};
+    return {
+      id: `${r.osm_type}/${r.osm_id}`,
+      name: (r.display_name || "Result").split(",")[0],
+      fullName: r.display_name || "",
+      kind: kindFromType(r.class, r.type),
+      lat: parseFloat(r.lat),
+      lon: parseFloat(r.lon),
+      phone: tags.phone || tags["contact:phone"] || null,
+      website: tags.website || tags["contact:website"] || null,
+    };
+  });
+}
+
 export function formatDistance(m) {
   if (m == null) return "";
   if (m < 1000) return `${Math.round(m)} m`;

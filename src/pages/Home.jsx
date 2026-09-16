@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Plus, Search, ShieldAlert, Loader2, MapPin, ShieldCheck, FileText, ChevronRight } from "lucide-react";
+import { Plus, Search, ShieldAlert, Loader2, MapPin, LifeBuoy, ShieldCheck, FileText, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import PixelDecor from "@/components/PixelDecor";
@@ -106,7 +106,7 @@ export default function Home() {
               to="/authorities"
               className="flex items-center justify-center gap-2 rounded-2xl bg-white/15 px-3 py-2.5 text-sm font-medium backdrop-blur transition hover:bg-white/25 active:scale-[0.98]"
             >
-              <MapPin className="h-4 w-4" /> Authorities
+              <LifeBuoy className="h-4 w-4" /> Get Help
             </Link>
           </div>
         </div>
