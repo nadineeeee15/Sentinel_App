@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
-import { Lock, Delete, ShieldCheck } from "lucide-react";
+import { Delete, ShieldAlert, Fingerprint, Loader2, ArrowRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Image } from "@/components/ui/image";
 import { cn } from "@/lib/utils";
+import {
+  biometricAvailable, enableBiometric, biometricEnabled, biometricUnlock, disableBiometric,
+} from "@/lib/biometric";
 
-const PIN_KEY = "cybersec_app_pin";
+const LOGO_URL = "https://media.base44.com/images/public/6aa9facc831bca800f220eb4/69bc80527_IMG_3083.jpeg";
+const NAME_KEY = "sentinel_user_name";
+const PIN_KEY = "sentinel_app_pin";
 
 function hashPin(pin) {
   let h = 5381;
@@ -14,26 +22,77 @@ function hashPin(pin) {
 function getStoredPin() {
   try { return localStorage.getItem(PIN_KEY); } catch { return null; }
 }
+function getStoredName() {
+  try { return localStorage.getItem(NAME_KEY) || ""; } catch { return ""; }
+}
 
-function greeting() {
-  const h = new Date().getHours();
-  if (h >= 5 && h < 12) return "Good morning";
-  if (h >= 12 && h < 17) return "Good afternoon";
-  if (h >= 17 && h < 22) return "Good evening";
-  return "Good night";
+function Dots({ display, shake }) {
+  return (
+    <div className={cn("mt-6 flex gap-3", shake && "animate-[shake_0.4s]")}>
+      {[0, 1, 2, 3].map((i) => (
+        <div
+          key={i}
+          className={cn(
+            "h-3.5 w-3.5 rounded-full border-2 transition",
+            i < display.length ? "border-primary bg-primary" : "border-slate-300 bg-transparent"
+          )}
+        />
+      ))}
+    </div>
+  );
+}
+
+function Keypad({ onPress, onDel }) {
+  const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+  return (
+    <div className="mt-6 grid grid-cols-3 gap-3">
+      {keys.map((k) => (
+        <button
+          key={k}
+          onClick={() => onPress(k)}
+          className="flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xl font-semibold text-slate-800 shadow-sm transition active:scale-95 hover:bg-violet-50"
+        >
+          {k}
+        </button>
+      ))}
+      <div />
+      <button
+        onClick={() => onPress("0")}
+        className="flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xl font-semibold text-slate-800 shadow-sm transition active:scale-95 hover:bg-violet-50"
+      >
+        0
+      </button>
+      <button
+        onClick={onDel}
+        className="flex h-16 w-16 items-center justify-center rounded-2xl text-slate-500 transition active:scale-95 hover:bg-violet-50"
+      >
+        <Delete className="h-6 w-6" />
+      </button>
+    </div>
+  );
 }
 
 export default function AppLock() {
+  const [stage, setStage] = useState(null); // null | welcome | setPin | unlock
   const [unlocked, setUnlocked] = useState(false);
-  const [needsSetup, setNeedsSetup] = useState(false);
-  const [stage, setStage] = useState("enter"); // enter | confirm
+  const [name, setName] = useState("");
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
+  const [setStep, setSetStep] = useState("enter");
   const [error, setError] = useState("");
   const [shake, setShake] = useState(false);
+  const [bioSupported, setBioSupported] = useState(false);
+  const [bioOn, setBioOn] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    setNeedsSetup(!getStoredPin());
+    const storedName = getStoredName();
+    const storedPin = getStoredPin();
+    if (!storedName) setStage("welcome");
+    else if (!storedPin) setStage("setPin");
+    else setStage("unlock");
+    biometricAvailable().then(setBioSupported);
+    setBioOn(biometricEnabled());
   }, []);
 
   function fail(msg) {
@@ -42,16 +101,16 @@ export default function AppLock() {
     setTimeout(() => setShake(false), 500);
     setPin("");
     setConfirmPin("");
-    setStage("enter");
+    setSetStep("enter");
   }
 
   function press(d) {
     setError("");
-    if (needsSetup) {
-      if (stage === "enter") {
+    if (stage === "setPin") {
+      if (setStep === "enter") {
         const next = (pin + d).slice(0, 4);
         setPin(next);
-        if (next.length === 4) setStage("confirm");
+        if (next.length === 4) setSetStep("confirm");
       } else {
         const next = (confirmPin + d).slice(0, 4);
         setConfirmPin(next);
@@ -81,97 +140,155 @@ export default function AppLock() {
 
   function del() {
     setError("");
-    if (needsSetup && stage === "confirm") {
-      setConfirmPin((p) => p.slice(0, -1));
-    } else {
-      setPin((p) => p.slice(0, -1));
+    if (stage === "setPin" && setStep === "confirm") setConfirmPin((p) => p.slice(0, -1));
+    else setPin((p) => p.slice(0, -1));
+  }
+
+  function startWithName() {
+    const n = name.trim();
+    if (n.length < 1) { setError("Please enter your name"); return; }
+    try { localStorage.setItem(NAME_KEY, n); } catch {}
+    setError("");
+    setStage("setPin");
+  }
+
+  async function setupBiometric() {
+    setBusy(true); setError("");
+    try {
+      await enableBiometric();
+      setBioOn(true);
+      setUnlocked(true);
+    } catch {
+      setError("Biometric setup failed. Use a PIN instead.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function unlockBiometric() {
+    setBusy(true); setError("");
+    try {
+      const ok = await biometricUnlock();
+      if (ok) setUnlocked(true);
+      else setError("Biometric unlock failed. Enter your PIN.");
+    } catch {
+      setError("Biometric unlock failed. Enter your PIN.");
+    } finally {
+      setBusy(false);
     }
   }
 
   function resetPin() {
-    if (!confirm("Reset the app PIN? You'll need to set a new one to unlock.")) return;
+    if (!confirm("Reset your PIN? You'll need to set a new one to unlock.")) return;
     try { localStorage.removeItem(PIN_KEY); } catch {}
-    setNeedsSetup(true);
-    setStage("enter");
-    setPin("");
-    setConfirmPin("");
-    setError("");
+    disableBiometric();
+    setBioOn(false);
+    setPin(""); setConfirmPin(""); setSetStep("enter"); setError("");
+    setStage("setPin");
   }
 
   if (unlocked) return <Outlet />;
 
-  const display = needsSetup ? (stage === "confirm" ? confirmPin : pin) : pin;
-  const title = needsSetup
-    ? stage === "confirm" ? "Confirm your PIN" : "Create an app PIN"
-    : "Welcome back";
-  const subtitle = needsSetup
-    ? stage === "confirm" ? "Re-enter the 4 digits to confirm"
-      : "Set a 4-digit PIN to lock your reports for safety"
-    : `${greeting()} — enter your PIN to unlock`;
-
-  const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
-
-  return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center bg-gradient-to-b from-violet-100 via-violet-50 to-background px-6 py-10">
-      <div className="mb-8 flex flex-col items-center text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-violet-500/30">
-          <Lock className="h-7 w-7" />
-        </div>
-        <h1 className="mt-4 text-xl font-semibold text-slate-900">{title}</h1>
-        <p className="mt-1 max-w-xs text-sm text-slate-500">{subtitle}</p>
+  if (stage === null) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-violet-500" />
       </div>
+    );
+  }
 
-      <div className={cn("flex gap-3", shake && "animate-[shake_0.4s]")}>
-        {[0, 1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className={cn(
-              "h-3.5 w-3.5 rounded-full border-2 transition",
-              i < display.length
-                ? "border-primary bg-primary"
-                : "border-slate-300 bg-transparent"
-            )}
+  const display = stage === "setPin" && setStep === "confirm" ? confirmPin : pin;
+
+  // Welcome + name capture (first launch)
+  if (stage === "welcome") {
+    return (
+      <div className="mx-auto flex min-h-dvh max-w-md flex-col bg-gradient-to-b from-violet-100 via-violet-50 to-background px-6">
+        <div className="flex flex-1 flex-col items-center justify-center text-center">
+          <Image
+            src={LOGO_URL}
+            fittingType="fit"
+            className="h-28 w-28 rounded-3xl shadow-lg shadow-violet-500/20"
           />
-        ))}
+          <h1 className="mt-6 text-2xl font-semibold tracking-tight text-slate-900">
+            Welcome to Sentinel
+          </h1>
+          <p className="mt-2 max-w-xs text-sm text-slate-500">
+            Your private guardian — here to safeguard and help you when it matters most.
+          </p>
+        </div>
+        <div className="pb-10">
+          <label className="mb-1.5 block text-sm font-medium text-slate-700">
+            What's your name?
+          </label>
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && startWithName()}
+            placeholder="Enter your name"
+            className="rounded-2xl"
+            autoFocus
+          />
+          <Button onClick={startWithName} className="mt-3 w-full rounded-2xl">
+            Continue <ArrowRight className="h-4 w-4" />
+          </Button>
+          {error && <p className="mt-2 text-sm text-rose-600">{error}</p>}
+        </div>
       </div>
+    );
+  }
 
-      {error && <p className="mt-4 text-sm font-medium text-rose-600">{error}</p>}
-
-      <div className="mt-8 grid grid-cols-3 gap-3">
-        {keys.map((k) => (
+  // Set PIN (after name, or after reset)
+  if (stage === "setPin") {
+    return (
+      <div className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center bg-gradient-to-b from-violet-100 via-violet-50 to-background px-6 py-10 text-center">
+        <Image src={LOGO_URL} fittingType="fit" className="h-20 w-20 rounded-2xl" />
+        <h1 className="mt-4 text-xl font-semibold text-slate-900">Set your app PIN</h1>
+        <p className="mt-1 max-w-xs text-sm text-slate-500">
+          {setStep === "confirm" ? "Re-enter your PIN to confirm" : "Choose a 4-digit PIN to protect your reports"}
+        </p>
+        <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700">
+          <ShieldAlert className="h-3.5 w-3.5" /> Never share your PIN with anyone.
+        </div>
+        <Dots display={display} shake={shake} />
+        {error && <p className="mt-4 text-sm font-medium text-rose-600">{error}</p>}
+        <Keypad onPress={press} onDel={del} />
+        {bioSupported && (
           <button
-            key={k}
-            onClick={() => press(k)}
-            className="flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xl font-semibold text-slate-800 shadow-sm transition active:scale-95 hover:bg-violet-50"
+            onClick={setupBiometric}
+            disabled={busy}
+            className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-violet-700 hover:text-violet-900 disabled:opacity-50"
           >
-            {k}
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Fingerprint className="h-4 w-4" />}
+            Or use biometrics instead
           </button>
-        ))}
-        <button
-          onClick={resetPin}
-          className="flex h-16 w-16 items-center justify-center rounded-2xl text-xs font-medium text-slate-400 hover:text-slate-600"
-        >
-          {needsSetup ? "" : "Reset"}
-        </button>
-        <button
-          onClick={() => press("0")}
-          className="flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xl font-semibold text-slate-800 shadow-sm transition active:scale-95 hover:bg-violet-50"
-        >
-          0
-        </button>
-        <button
-          onClick={del}
-          className="flex h-16 w-16 items-center justify-center rounded-2xl text-slate-500 transition active:scale-95 hover:bg-violet-50"
-        >
-          <Delete className="h-6 w-6" />
-        </button>
+        )}
       </div>
+    );
+  }
 
-      <div className="mt-8 flex items-center gap-1.5 text-xs text-slate-400">
-        <ShieldCheck className="h-3.5 w-3.5 text-violet-500" />
-        Your reports are protected by an app PIN stored only on this device.
-      </div>
-
+  // Unlock (returning user)
+  const firstName = (getStoredName() || "").split(" ")[0] || "there";
+  return (
+    <div className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center bg-gradient-to-b from-violet-100 via-violet-50 to-background px-6 py-10 text-center">
+      <Image src={LOGO_URL} fittingType="fit" className="h-24 w-24 rounded-3xl shadow-lg shadow-violet-500/20" />
+      <h1 className="mt-4 text-xl font-semibold text-slate-900">Welcome back, {firstName}</h1>
+      <p className="mt-1 text-sm text-slate-500">Enter your PIN to unlock</p>
+      <Dots display={display} shake={shake} />
+      {error && <p className="mt-4 text-sm font-medium text-rose-600">{error}</p>}
+      <Keypad onPress={press} onDel={del} />
+      {bioOn && (
+        <button
+          onClick={unlockBiometric}
+          disabled={busy}
+          className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-violet-700 hover:text-violet-900 disabled:opacity-50"
+        >
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Fingerprint className="h-4 w-4" />}
+          Use biometrics
+        </button>
+      )}
+      <button onClick={resetPin} className="mt-4 text-xs text-slate-400 hover:text-slate-600">
+        Reset PIN
+      </button>
       <style>{`@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }`}</style>
     </div>
   );

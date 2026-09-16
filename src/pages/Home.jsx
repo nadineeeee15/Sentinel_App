@@ -58,7 +58,8 @@ export default function Home() {
     });
   }, [incidents, query, status]);
 
-  const firstName = (user?.full_name || "").split(" ")[0] || "there";
+  const localName = (typeof localStorage !== "undefined" && localStorage.getItem("sentinel_user_name")) || "";
+  const firstName = (localName || user?.full_name || "").split(" ")[0] || "there";
   const reportsReady = (incidents || []).filter((i) => i.ai_report).length;
 
   return (
