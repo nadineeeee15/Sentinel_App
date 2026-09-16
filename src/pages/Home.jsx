@@ -65,7 +65,7 @@ export default function Home() {
   const reportsReady = (incidents || []).filter((i) => i.ai_report).length;
 
   return (
-    <div className="mx-auto min-h-dvh max-w-md bg-gradient-to-b from-[#1a0b2e] via-[#1f0d38] to-[#140722]">
+    <div className="mx-auto min-h-dvh max-w-md bg-gradient-to-b from-[#0d0518] via-[#120724] to-[#08030f]">
       {/* Greeting header */}
       <header className="px-5 pb-3 pt-6">
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-500 via-violet-600 to-fuchsia-700 p-5 text-white shadow-2xl shadow-fuchsia-900/30">
