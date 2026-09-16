@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import {
   ArrowLeft, ArrowRight, Loader2, Sparkles, Check, ShieldCheck, FileText, Download,
@@ -77,7 +77,7 @@ export default function NewReport() {
         description: description.trim(),
         category,
         severity,
-        status: "draft",
+        status: "completed",
         location: location.trim(),
         incident_date: new Date(incidentDate).toISOString(),
         ai_report: report,
@@ -94,6 +94,29 @@ export default function NewReport() {
     }
   }
 
+  async function saveDraftAndLeave() {
+    if (title.trim().length >= 3 && category) {
+      try {
+        const created = await base44.entities.Incident.create({
+          title: title.trim(),
+          description: description.trim(),
+          category,
+          severity,
+          status: "draft",
+          location: location.trim(),
+          incident_date: new Date(incidentDate).toISOString(),
+          ...(report
+            ? { ai_report: report, report_generated_date: generatedAt, report_number: reportNumber }
+            : {}),
+        });
+        if (attachments.length) {
+          try { await persistInMemoryAttachments(created.id, attachments); } catch {}
+        }
+      } catch (e) {}
+    }
+    navigate("/");
+  }
+
   const incidentForPdf = {
     title, category, severity, status: "draft",
     location, incident_date: new Date(incidentDate).toISOString(),
@@ -104,9 +127,9 @@ export default function NewReport() {
     <div className="mx-auto min-h-dvh max-w-md bg-background text-foreground">
       <header className="sticky top-0 z-20 bg-card/85 px-4 py-3 backdrop-blur-md">
         <div className="flex items-center gap-2">
-          <Link to="/" className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-accent">
+          <button onClick={saveDraftAndLeave} className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-accent">
             <ArrowLeft className="h-5 w-5" />
-          </Link>
+          </button>
           <div>
             <h1 className="text-base font-semibold text-foreground">New Incident Report</h1>
             <p className="text-xs text-muted-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</p>
