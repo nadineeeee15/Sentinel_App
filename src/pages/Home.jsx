@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/select";
 import IncidentCard from "@/components/incidents/IncidentCard";
 import StatPills from "@/components/incidents/StatPills";
+import SafetyOverview from "@/components/incidents/SafetyOverview";
+import QuickTools from "@/components/incidents/QuickTools";
 
 const STATUSES = ["all", "draft", "completed"];
 
@@ -62,7 +64,7 @@ export default function Home() {
 
   const localName = (typeof localStorage !== "undefined" && localStorage.getItem("sentinel_user_name")) || "";
   const firstName = (localName || user?.full_name || "").split(" ")[0] || "there";
-  const reportsReady = (incidents || []).filter((i) => i.ai_report).length;
+  const drafts = (incidents || []).filter((i) => i.status === "draft").length;
 
   return (
     <div className="mx-auto min-h-dvh max-w-md bg-gradient-to-b from-[#1a0b2e] via-[#1f0d38] to-[#140722]">
@@ -137,14 +139,21 @@ export default function Home() {
         </div>
 
         <StatPills incidents={incidents} />
+        <SafetyOverview incidents={incidents} />
       </header>
 
       {/* List */}
       <main className="px-5 pb-16 pt-2">
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-violet-100">Recent reports</h2>
+          <h2 className="text-sm font-semibold text-violet-100">Recent activity</h2>
           {incidents != null && (
-            <span className="text-xs text-violet-300/70">{reportsReady} with AI report</span>
+            <span
+              className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${
+                drafts === 0 ? "bg-emerald-400/15 text-emerald-300" : "bg-amber-400/15 text-amber-300"
+              }`}
+            >
+              {drafts === 0 ? "All clear" : `${drafts} draft${drafts > 1 ? "s" : ""}`}
+            </span>
           )}
         </div>
 
@@ -171,20 +180,17 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="space-y-3"
+            className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md"
           >
             {filtered.map((i, idx) => (
-              <motion.div
-                key={i.id}
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 * idx, duration: 0.35, ease: "easeOut" }}
-              >
+              <div key={i.id} className={idx > 0 ? "border-t border-white/10" : ""}>
                 <IncidentCard incident={i} />
-              </motion.div>
+              </div>
             ))}
           </motion.div>
         )}
+
+        <QuickTools />
 
         <div className="mt-6 flex items-start gap-2 rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-violet-200">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-violet-300" />
