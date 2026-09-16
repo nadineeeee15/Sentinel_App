@@ -1,30 +1,37 @@
 import React from "react";
 import { motion } from "framer-motion";
 
-// Neon "guardian field" — glowing orbs, a sweeping scan line, and shimmering
-// sparks behind the dashboard header. Purely decorative, pointer-events none.
+// Neon "meteor shower" — glowing stars and meteor streaks raining from the
+// top of the header, with soft pulsing nebula orbs behind them.
 
-const ORBS = [
-  { left: "12%", top: "20%", size: 120, color: "167 139 250", dur: 6, delay: 0,    drift: 30 },
-  { left: "70%", top: "10%", size: 150, color: "232 121 249", dur: 7, delay: 0.8,  drift: -26 },
-  { left: "45%", top: "55%", size: 100, color: "139 92 246",  dur: 5, delay: 1.4,  drift: 20 },
-  { left: "85%", top: "60%", size: 90,  color: "217 70 239",   dur: 8, delay: 0.4,  drift: -18 },
+const METEORS = [
+  { left: "10%", angle: 18, dur: 2.6, delay: 0,   len: 70,  color: "167 139 250" },
+  { left: "28%", angle: 14, dur: 3.2, delay: 0.8, len: 90,  color: "232 121 249" },
+  { left: "44%", angle: 20, dur: 2.9, delay: 1.5, len: 60,  color: "167 139 250" },
+  { left: "60%", angle: 12, dur: 3.5, delay: 0.3, len: 100, color: "232 121 249" },
+  { left: "76%", angle: 22, dur: 2.4, delay: 1.1, len: 75,  color: "192 132 252" },
+  { left: "90%", angle: 16, dur: 3.1, delay: 1.8, len: 85,  color: "232 121 249" },
 ];
 
-const SPARKS = [
-  { left: "18%", size: 4, color: "bg-fuchsia-300", dur: 4.5, delay: 0.2,  rise: 120 },
-  { left: "34%", size: 3, color: "bg-violet-200",  dur: 5.5, delay: 1.1,  rise: 90 },
-  { left: "55%", size: 5, color: "bg-fuchsia-200", dur: 6,   delay: 0.6,  rise: 140 },
-  { left: "68%", size: 3, color: "bg-violet-300",  dur: 4,   delay: 1.8,  rise: 100 },
-  { left: "82%", size: 4, color: "bg-fuchsia-300", dur: 5,   delay: 0.9,  rise: 130 },
-  { left: "26%", size: 3, color: "bg-violet-200",  dur: 5.2, delay: 2.2,  rise: 110 },
-  { left: "92%", size: 4, color: "bg-fuchsia-200", dur: 4.8, delay: 1.5,  rise: 95 },
+const STARS = [
+  { left: "15%", top: "18%", size: 3, dur: 2.5, delay: 0.2 },
+  { left: "35%", top: "40%", size: 2, dur: 3,   delay: 0.7 },
+  { left: "52%", top: "15%", size: 3, dur: 2.8, delay: 1.2 },
+  { left: "68%", top: "35%", size: 2, dur: 3.2, delay: 0.5 },
+  { left: "82%", top: "22%", size: 3, dur: 2.6, delay: 1.6 },
+  { left: "24%", top: "60%", size: 2, dur: 3.4, delay: 0.9 },
+  { left: "88%", top: "55%", size: 3, dur: 2.9, delay: 1.3 },
+];
+
+const ORBS = [
+  { left: "20%", top: "15%", size: 130, color: "167 139 250", dur: 6, delay: 0 },
+  { left: "72%", top: "20%", size: 150, color: "232 121 249", dur: 7, delay: 1 },
 ];
 
 export default function PixelDecor() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-      {/* Pulsing neon orbs */}
+      {/* Soft pulsing nebula glow */}
       {ORBS.map((o, i) => (
         <motion.span
           key={`orb-${i}`}
@@ -34,71 +41,52 @@ export default function PixelDecor() {
             top: o.top,
             width: o.size,
             height: o.size,
-            background: `radial-gradient(circle, rgba(${o.color}, 0.55) 0%, rgba(${o.color}, 0.15) 45%, transparent 70%)`,
-            filter: "blur(8px)",
+            background: `radial-gradient(circle, rgba(${o.color}, 0.5) 0%, rgba(${o.color}, 0.12) 45%, transparent 70%)`,
+            filter: "blur(10px)",
           }}
-          initial={{ opacity: 0.35, scale: 0.8 }}
-          animate={{
-            opacity: [0.35, 0.7, 0.35],
-            scale: [0.85, 1.1, 0.85],
-            x: [0, o.drift, 0],
-          }}
-          transition={{
-            duration: o.dur,
-            delay: o.delay,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+          initial={{ opacity: 0.3, scale: 0.85 }}
+          animate={{ opacity: [0.3, 0.6, 0.3], scale: [0.85, 1.1, 0.85] }}
+          transition={{ duration: o.dur, delay: o.delay, repeat: Infinity, ease: "easeInOut" }}
         />
       ))}
 
-      {/* Sweeping scan line — a thin neon beam that travels across */}
-      <motion.div
-        className="absolute left-0 right-0 h-px"
-        style={{
-          top: "50%",
-          background:
-            "linear-gradient(90deg, transparent, rgba(232,121,249,0.8), rgba(167,139,250,0.9), transparent)",
-          boxShadow: "0 0 12px 2px rgba(167,139,250,0.6)",
-        }}
-        initial={{ x: "-100%", opacity: 0 }}
-        animate={{ x: ["-100%", "100%"], opacity: [0, 1, 0] }}
-        transition={{
-          duration: 4.5,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
-
-      {/* Shimmering rising sparks */}
-      {SPARKS.map((s, i) => (
+      {/* Twinkling stars */}
+      {STARS.map((s, i) => (
         <motion.span
-          key={`spark-${i}`}
-          className={`absolute bottom-0 rounded-full ${s.color}`}
-          style={{ left: s.left, width: s.size, height: s.size, filter: "blur(0.5px)" }}
-          initial={{ y: 0, opacity: 0 }}
-          animate={{
-            y: -s.rise,
-            opacity: [0, 1, 0],
-            scale: [0.6, 1.4, 0.6],
-          }}
-          transition={{
-            duration: s.dur,
-            delay: s.delay,
-            repeat: Infinity,
-            ease: "easeOut",
-          }}
+          key={`star-${i}`}
+          className="absolute rounded-full bg-white"
+          style={{ left: s.left, top: s.top, width: s.size, height: s.size, filter: "blur(0.5px)" }}
+          initial={{ opacity: 0.2, scale: 0.6 }}
+          animate={{ opacity: [0.2, 1, 0.2], scale: [0.6, 1.3, 0.6] }}
+          transition={{ duration: s.dur, delay: s.delay, repeat: Infinity, ease: "easeInOut" }}
         />
       ))}
 
-      {/* Pulsing shield ring — a faint neon halo that breathes */}
-      <motion.div
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-fuchsia-400/30"
-        style={{ width: 180, height: 180, boxShadow: "0 0 24px 4px rgba(232,121,249,0.25)" }}
-        initial={{ opacity: 0.2, scale: 0.9 }}
-        animate={{ opacity: [0.15, 0.4, 0.15], scale: [0.9, 1.05, 0.9] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-      />
+      {/* Shooting meteors from the top */}
+      {METEORS.map((m, i) => (
+        <motion.div
+          key={`meteor-${i}`}
+          className="absolute top-0"
+          style={{
+            left: m.left,
+            width: 2,
+            height: m.len,
+            background: `linear-gradient(to bottom, transparent, rgba(${m.color}, 0.95), rgba(${m.color}, 0.3), transparent)`,
+            boxShadow: `0 0 8px 1px rgba(${m.color}, 0.7)`,
+            borderRadius: 4,
+            transformOrigin: "top center",
+            rotate: `${m.angle}deg`,
+          }}
+          initial={{ y: -m.len, opacity: 0 }}
+          animate={{ y: 260, opacity: [0, 1, 1, 0] }}
+          transition={{
+            duration: m.dur,
+            delay: m.delay,
+            repeat: Infinity,
+            ease: "easeIn",
+          }}
+        />
+      ))}
     </div>
   );
 }
