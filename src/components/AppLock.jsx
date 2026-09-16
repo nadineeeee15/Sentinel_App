@@ -9,6 +9,11 @@ import { cn } from "@/lib/utils";
 import {
   biometricAvailable, enableBiometric, biometricEnabled, biometricUnlock, disableBiometric,
 } from "@/lib/biometric";
+import {
+  setupNewPinEncryption, unlockWithPin, hasWrappedDek, unlockWithBiometric,
+  enableBiometricEncryption, generateSessionDek, clearWrappedDek,
+} from "@/lib/crypto";
+import { migrateLegacyAttachments } from "@/lib/attachments";
 
 const NAME_KEY = "sentinel_user_name";
 const PIN_KEY = "sentinel_app_pin";
@@ -84,6 +89,7 @@ export default function AppLock() {
   const [bioSupported, setBioSupported] = useState(false);
   const [bioOn, setBioOn] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [unlocking, setUnlocking] = useState(false);
 
   useEffect(() => {
     const storedName = getStoredName();
@@ -104,7 +110,7 @@ export default function AppLock() {
     setSetStep("enter");
   }
 
-  function press(d) {
+  async function press(d) {
     setError("");
     if (stage === "setPin") {
       if (setStep === "enter") {
@@ -117,6 +123,9 @@ export default function AppLock() {
         if (next.length === 4) {
           if (next === pin) {
             try { localStorage.setItem(PIN_KEY, hashPin(next)); } catch {}
+            setUnlocking(true);
+            try { await setupNewPinEncryption(next); } catch {}
+            setUnlocking(false);
             setUnlocked(true);
           } else {
             fail("PINs don't match. Try again.");
@@ -128,6 +137,16 @@ export default function AppLock() {
       setPin(next);
       if (next.length === 4) {
         if (hashPin(next) === getStoredPin()) {
+          setUnlocking(true);
+          try {
+            if (hasWrappedDek()) {
+              await unlockWithPin(next);
+            } else {
+              await setupNewPinEncryption(next);
+            }
+            await migrateLegacyAttachments().catch(() => {});
+          } catch {}
+          setUnlocking(false);
           setUnlocked(true);
         } else {
           setError("Incorrect PIN.");
@@ -156,6 +175,8 @@ export default function AppLock() {
     setBusy(true); setError("");
     try {
       await enableBiometric();
+      await generateSessionDek();
+      await enableBiometricEncryption();
       setBioOn(true);
       setUnlocked(true);
     } catch {
@@ -169,8 +190,11 @@ export default function AppLock() {
     setBusy(true); setError("");
     try {
       const ok = await biometricUnlock();
-      if (ok) setUnlocked(true);
-      else setError("Biometric unlock failed. Enter your PIN.");
+      if (ok) {
+        await unlockWithBiometric().catch(() => {});
+        await migrateLegacyAttachments().catch(() => {});
+        setUnlocked(true);
+      } else setError("Biometric unlock failed. Enter your PIN.");
     } catch {
       setError("Biometric unlock failed. Enter your PIN.");
     } finally {
@@ -179,12 +203,21 @@ export default function AppLock() {
   }
 
   function resetPin() {
-    if (!confirm("Reset your PIN? You'll need to set a new one to unlock.")) return;
+    if (!confirm("Reset your PIN? Any locally stored attachments will be permanently lost, but your text reports remain on your account. Continue?")) return;
     try { localStorage.removeItem(PIN_KEY); } catch {}
+    clearWrappedDek();
     disableBiometric();
     setBioOn(false);
     setPin(""); setConfirmPin(""); setSetStep("enter"); setError("");
     setStage("setPin");
+  }
+
+  if (unlocking) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-violet-500" />
+      </div>
+    );
   }
 
   if (unlocked) return <Outlet />;

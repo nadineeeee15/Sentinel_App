@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
-import { Camera, ImagePlus, X, Loader2, ShieldCheck } from "lucide-react";
+import { Camera, ImagePlus, X, Loader2, ShieldCheck, Lock } from "lucide-react";
 import { readAttachmentObject } from "@/lib/attachments";
+import { hasSessionKey } from "@/lib/crypto";
 
 export default function AttachmentInput({ attachments, onAdd, onRemove }) {
   const camRef = useRef(null);
@@ -22,13 +23,24 @@ export default function AttachmentInput({ attachments, onAdd, onRemove }) {
     }
   }
 
+  if (!hasSessionKey()) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-start gap-2 rounded-xl bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-300">
+          <Lock className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>Set a PIN in Profile to enable encrypted attachment storage.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
       <div className="flex items-start gap-2 rounded-xl bg-emerald-500/10 p-3 text-xs text-emerald-700 dark:text-emerald-300">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500 dark:text-emerald-400" />
         <p>
-          Attachments are stored <span className="font-semibold">only on this device</span> for your
-          privacy. They are never uploaded, and the AI never sees them.
+          Attachments are <span className="font-semibold">encrypted</span> and stored only on this
+          device. They are never uploaded, and the AI never sees them.
         </p>
       </div>
 

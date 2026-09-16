@@ -11,6 +11,10 @@ import {
   biometricAvailable, enableBiometric, biometricEnabled, disableBiometric,
 } from "@/lib/biometric";
 import { setStoredPin, PIN_KEY } from "@/lib/pin";
+import {
+  setupNewPinEncryption, changePinEncryption, hasWrappedDek, hasSessionKey,
+  enableBiometricEncryption, removeBiometricWrappedDek,
+} from "@/lib/crypto";
 import PinSetter from "@/components/security/PinSetter";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -42,10 +46,12 @@ export default function Profile() {
     try {
       if (on) {
         await enableBiometric();
+        if (hasSessionKey()) await enableBiometricEncryption().catch(() => {});
         setBioOn(true);
         setBioMsg("Biometric unlock enabled.");
       } else {
         disableBiometric();
+        removeBiometricWrappedDek();
         setBioOn(false);
         setBioMsg("Biometric unlock disabled.");
       }
@@ -62,12 +68,20 @@ export default function Profile() {
     setSettingPin(true);
   }
 
-  function saveNewPin(pin) {
+  async function saveNewPin(pin) {
     setStoredPin(pin);
     setPinSet(true);
     setSettingPin(false);
     setMsg("The PIN has been reset.");
     toast({ title: "The PIN has been reset." });
+    try {
+      if (hasWrappedDek() && hasSessionKey()) {
+        await changePinEncryption(pin);
+      } else if (!hasWrappedDek()) {
+        await setupNewPinEncryption(pin);
+        if (bioOn) await enableBiometricEncryption().catch(() => {});
+      }
+    } catch {}
   }
 
   async function signOut() {

@@ -1,11 +1,18 @@
 // Local-only attachment storage using IndexedDB.
 // Attachments (e.g. sensitive screenshots/photos) never leave the device.
-// They are keyed by the incident id so they stay linked to a report without
-// being uploaded to the server.
+// They are encrypted at rest with AES-GCM (see crypto.js) using a
+// data-encryption key held in memory only while the app is unlocked.
+// Legacy plaintext records are migrated on first unlock via
+// migrateLegacyAttachments().
+
+import {
+  cryptoAvailable, hasSessionKey, encryptDataUrl, decryptDataUrl,
+} from "@/lib/crypto";
 
 const DB_NAME = "cybersec-attachments";
 const STORE = "attachments";
 const VERSION = 1;
+const MIGRATION_FLAG = "sentinel_migration_v1";
 
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -34,54 +41,70 @@ function fileToDataUrl(file) {
   });
 }
 
+function canEncrypt() {
+  return cryptoAvailable() && hasSessionKey();
+}
+
+async function encryptIfPossible(dataUrl) {
+  if (canEncrypt()) {
+    const { iv, ciphertext } = await encryptDataUrl(dataUrl);
+    return { iv, ciphertext, encrypted: true, version: 1 };
+  }
+  return { dataUrl, encrypted: false, version: 1 };
+}
+
 export async function addInMemoryAttachment(incidentId, att) {
   const db = await openDB();
+  const enc = await encryptIfPossible(att.dataUrl);
   const record = {
     incident_id: incidentId,
     name: att.name || "attachment",
     type: att.type || "image/*",
     size: att.size || 0,
-    dataUrl: att.dataUrl,
     created_date: new Date().toISOString(),
+    ...enc,
   };
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, "readwrite");
     const req = tx.objectStore(STORE).add(record);
-    req.onsuccess = () => resolve({ ...record, id: req.result });
+    req.onsuccess = () => resolve({ ...record, id: req.result, dataUrl: att.dataUrl });
     req.onerror = () => reject(req.error);
   });
 }
 
 export async function addAttachment(incidentId, file) {
   const dataUrl = await fileToDataUrl(file);
-  const record = {
-    incident_id: incidentId,
+  return addInMemoryAttachment(incidentId, {
     name: file.name || "attachment",
     type: file.type || "image/*",
     size: file.size,
     dataUrl,
-    created_date: new Date().toISOString(),
-  };
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, "readwrite");
-    const req = tx.objectStore(STORE).add(record);
-    req.onsuccess = () => resolve({ ...record, id: req.result });
-    req.onerror = () => reject(req.error);
   });
+}
+
+async function decryptRecord(a) {
+  if (a.encrypted && a.iv != null && a.ciphertext != null) {
+    if (!canEncrypt()) return { ...a, dataUrl: "" };
+    try {
+      const dataUrl = await decryptDataUrl(a.iv, a.ciphertext);
+      return { ...a, dataUrl };
+    } catch {
+      return { ...a, dataUrl: "" };
+    }
+  }
+  return a;
 }
 
 export async function getAttachments(incidentId) {
   const db = await openDB();
-  return new Promise((resolve, reject) => {
+  const all = await new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, "readonly");
     const req = tx.objectStore(STORE).getAll();
-    req.onsuccess = () => {
-      const all = req.result || [];
-      resolve(all.filter((a) => a.incident_id === incidentId));
-    };
+    req.onsuccess = () => resolve(req.result || []);
     req.onerror = () => reject(req.error);
   });
+  const mine = all.filter((a) => a.incident_id === incidentId);
+  return Promise.all(mine.map(decryptRecord));
 }
 
 export async function deleteAttachment(id) {
@@ -103,14 +126,18 @@ export async function deleteAttachmentsForIncident(incidentId) {
 // read as data URLs) against a newly created incident id.
 export async function persistInMemoryAttachments(incidentId, attachments) {
   const db = await openDB();
-  const records = attachments.map((a) => ({
-    incident_id: incidentId,
-    name: a.name,
-    type: a.type,
-    size: a.size,
-    dataUrl: a.dataUrl,
-    created_date: new Date().toISOString(),
-  }));
+  const records = [];
+  for (const a of attachments) {
+    const enc = await encryptIfPossible(a.dataUrl);
+    records.push({
+      incident_id: incidentId,
+      name: a.name,
+      type: a.type,
+      size: a.size,
+      created_date: new Date().toISOString(),
+      ...enc,
+    });
+  }
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, "readwrite");
     const store = tx.objectStore(STORE);
@@ -129,4 +156,41 @@ export async function readAttachmentObject(file) {
     size: file.size,
     dataUrl,
   };
+}
+
+// One-time migration: encrypt legacy plaintext records using the session DEK.
+export async function migrateLegacyAttachments() {
+  try {
+    if (localStorage.getItem(MIGRATION_FLAG) === "done") return { migrated: 0 };
+  } catch {}
+  if (!canEncrypt()) return { migrated: 0 };
+  const db = await openDB();
+  const all = await new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readonly");
+    const req = tx.objectStore(STORE).getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
+  const legacy = all.filter((a) => !a.encrypted && a.dataUrl);
+  if (!legacy.length) {
+    try { localStorage.setItem(MIGRATION_FLAG, "done"); } catch {}
+    return { migrated: 0 };
+  }
+  let migrated = 0;
+  for (const rec of legacy) {
+    try {
+      const { iv, ciphertext } = await encryptDataUrl(rec.dataUrl);
+      const updated = { ...rec, iv, ciphertext, encrypted: true, version: 1 };
+      delete updated.dataUrl;
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, "readwrite");
+        const req = tx.objectStore(STORE).put(updated);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+      migrated++;
+    } catch {}
+  }
+  try { localStorage.setItem(MIGRATION_FLAG, "done"); } catch {}
+  return { migrated };
 }
