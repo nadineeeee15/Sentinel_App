@@ -75,7 +75,7 @@ export default function NewReport() {
         description: description.trim(),
         category,
         severity,
-        status: "reported",
+        status: "draft",
         location: location.trim(),
         incident_date: new Date(incidentDate).toISOString(),
         ai_report: report,
@@ -92,7 +92,7 @@ export default function NewReport() {
   }
 
   const incidentForPdf = {
-    title, category, severity, status: "reported",
+    title, category, severity, status: "draft",
     location, incident_date: new Date(incidentDate).toISOString(),
     ai_report: report, report_generated_date: generatedAt,
   };

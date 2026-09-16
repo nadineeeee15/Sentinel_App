@@ -47,14 +47,11 @@
     "status": {
       "type": "string",
       "enum": [
-        "reported",
-        "in_review",
-        "escalated",
-        "resolved",
-        "closed"
+        "draft",
+        "completed"
       ],
       "title": "Status",
-      "default": "reported"
+      "default": "draft"
     },
     "location": {
       "type": "string",

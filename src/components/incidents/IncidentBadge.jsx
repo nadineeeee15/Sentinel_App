@@ -9,11 +9,8 @@ const SEVERITY_STYLES = {
 };
 
 const STATUS_STYLES = {
-  reported: "bg-rose-50 text-rose-700 ring-rose-200",
-  in_review: "bg-blue-50 text-blue-700 ring-blue-200",
-  escalated: "bg-purple-50 text-purple-700 ring-purple-200",
-  resolved: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  closed: "bg-slate-100 text-slate-600 ring-slate-200",
+  draft: "bg-amber-50 text-amber-700 ring-amber-200",
+  completed: "bg-emerald-50 text-emerald-700 ring-emerald-200",
 };
 
 export function SeverityBadge({ severity, className }) {
@@ -32,12 +29,12 @@ export function SeverityBadge({ severity, className }) {
 }
 
 export function StatusBadge({ status, className }) {
-  const label = (status || "reported").replace("_", " ");
+  const label = (status || "draft").replace("_", " ");
   return (
     <span
       className={cn(
         "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ring-1 ring-inset",
-        STATUS_STYLES[status] ?? STATUS_STYLES.reported,
+        STATUS_STYLES[status] ?? STATUS_STYLES.draft,
         className
       )}
     >

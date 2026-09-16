@@ -17,7 +17,7 @@ import {
 } from "@/lib/attachments";
 import { exportReportPDF } from "@/lib/pdfExport";
 
-const STATUSES = ["reported", "in_review", "escalated", "resolved", "closed"];
+const STATUSES = ["draft", "completed"];
 
 export default function IncidentDetail() {
   const { id } = useParams();

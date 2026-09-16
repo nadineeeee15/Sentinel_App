@@ -9,7 +9,7 @@ import {
 import IncidentCard from "@/components/incidents/IncidentCard";
 import StatPills from "@/components/incidents/StatPills";
 
-const STATUSES = ["all", "reported", "in_review", "escalated", "resolved", "closed"];
+const STATUSES = ["all", "draft", "completed"];
 
 function greeting() {
   const h = new Date().getHours();
