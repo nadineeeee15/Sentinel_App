@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 
 const KIND_COLOR = {
   police: "#dc2626",
+  fire: "#ea580c",
   government: "#2563eb",
   civic: "#7c3aed",
   other: "#475569",
@@ -11,6 +12,7 @@ const KIND_COLOR = {
 
 const KIND_LABEL = {
   police: "Police station",
+  fire: "Fire station",
   government: "Government office",
   civic: "Civic office",
   other: "Local authority",

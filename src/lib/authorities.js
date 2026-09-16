@@ -1,9 +1,27 @@
-// Find nearby local authorities (police stations, government offices) using
-// the OpenStreetMap Overpass API. No API key required.
+// Find nearby local authorities using the OpenStreetMap Overpass API.
+// No API key required. Supports category filtering (police, fire, government, civic).
 
 const OVERPASS_ENDPOINTS = [
   "https://overpass-api.de/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter",
+];
+
+// OSM tag groups per category. "government" covers government offices & town
+// halls — these are where cybercrime / digital-evidence units are typically housed.
+const CATEGORY_QUERIES = {
+  all: [["amenity", "police"], ["amenity", "fire_station"], ["office", "government"], ["amenity", "townhall"]],
+  police: [["amenity", "police"]],
+  fire: [["amenity", "fire_station"]],
+  government: [["office", "government"], ["amenity", "townhall"]],
+  civic: [["amenity", "townhall"]],
+};
+
+export const CATEGORIES = [
+  { value: "all", label: "All" },
+  { value: "police", label: "Police" },
+  { value: "fire", label: "Fire station" },
+  { value: "government", label: "Gov / Cyber unit" },
+  { value: "civic", label: "Civic" },
 ];
 
 function haversineMeters(lat1, lon1, lat2, lon2) {
@@ -17,15 +35,17 @@ function haversineMeters(lat1, lon1, lat2, lon2) {
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-function buildQuery(lat, lon, radiusMeters) {
+function buildQuery(lat, lon, radiusMeters, category) {
+  const filters = CATEGORY_QUERIES[category] || CATEGORY_QUERIES.all;
+  const lines = filters
+    .flatMap(([k, v]) => [
+      `node["${k}"="${v}"](around:${radiusMeters},${lat},${lon});`,
+      `way["${k}"="${v}"](around:${radiusMeters},${lat},${lon});`,
+    ])
+    .join("\n  ");
   return `[out:json][timeout:25];
 (
-  node["amenity"="police"](around:${radiusMeters},${lat},${lon});
-  way["amenity"="police"](around:${radiusMeters},${lat},${lon});
-  node["office"="government"](around:${radiusMeters},${lat},${lon});
-  way["office"="government"](around:${radiusMeters},${lat},${lon});
-  node["amenity"="townhall"](around:${radiusMeters},${lat},${lon});
-  way["amenity"="townhall"](around:${radiusMeters},${lat},${lon});
+  ${lines}
 );
 out center 30;`;
 }
@@ -33,22 +53,24 @@ out center 30;`;
 function labelFor(element) {
   const tags = element.tags || {};
   if (tags.name) return tags.name;
-  if (element.tags && element.tags.amenity === "police") return "Police Station";
-  if (element.tags && element.tags.office === "government") return "Government Office";
-  if (element.tags && element.tags.amenity === "townhall") return "Town Hall / Civic Office";
+  if (tags.amenity === "police") return "Police Station";
+  if (tags.amenity === "fire_station") return "Fire Station";
+  if (tags.office === "government") return "Government Office";
+  if (tags.amenity === "townhall") return "Town Hall / Civic Office";
   return "Local Authority";
 }
 
 function kindFor(element) {
   const t = element.tags || {};
   if (t.amenity === "police") return "police";
+  if (t.amenity === "fire_station") return "fire";
   if (t.office === "government") return "government";
   if (t.amenity === "townhall") return "civic";
   return "other";
 }
 
-export async function getNearbyAuthorities(lat, lon, radiusMeters = 12000) {
-  const query = buildQuery(lat, lon, radiusMeters);
+export async function getNearbyAuthorities(lat, lon, { radiusMeters = 12000, category = "all" } = {}) {
+  const query = buildQuery(lat, lon, radiusMeters, category);
   let lastError = null;
   for (const endpoint of OVERPASS_ENDPOINTS) {
     try {
