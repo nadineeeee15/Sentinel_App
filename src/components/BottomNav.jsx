@@ -13,7 +13,7 @@ const ITEMS = [
 export default function BottomNav() {
   return (
     <nav
-      className="fixed bottom-0 left-1/2 z-30 w-full max-w-md -translate-x-1/2 border-t border-slate-200 bg-white/95 backdrop-blur-md"
+      className="fixed bottom-0 left-1/2 z-30 w-full max-w-md -translate-x-1/2 border-t border-border bg-card/95 backdrop-blur-md"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="grid grid-cols-4">
@@ -25,7 +25,7 @@ export default function BottomNav() {
             className={({ isActive }) =>
               cn(
                 "flex flex-col items-center gap-1 py-2 text-[11px] font-medium transition",
-                isActive ? "text-primary" : "text-slate-400 hover:text-slate-600"
+                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )
             }
           >

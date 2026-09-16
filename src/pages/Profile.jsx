@@ -12,6 +12,7 @@ import {
 } from "@/lib/biometric";
 import { setStoredPin, PIN_KEY } from "@/lib/pin";
 import PinSetter from "@/components/security/PinSetter";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const NAME_KEY = "sentinel_user_name";
 
@@ -79,35 +80,36 @@ export default function Profile() {
   const email = user?.email || "";
 
   return (
-    <div className="mx-auto min-h-dvh max-w-md bg-background pb-24">
-      <header className="px-5 pb-3 pt-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Profile</h1>
+    <div className="mx-auto min-h-dvh max-w-md bg-background pb-24 text-foreground">
+      <header className="flex items-center justify-between px-5 pb-3 pt-6">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Profile</h1>
+        <ThemeToggle />
       </header>
 
       <main className="space-y-6 px-5">
         {/* Identity */}
-        <section className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4">
+        <section className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-violet-100 text-violet-600">
             <User className="h-6 w-6" />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-slate-900">{displayName}</p>
-            <p className="truncate text-xs text-slate-400">{email || "Signed-in user"}</p>
+            <p className="truncate text-sm font-semibold text-card-foreground">{displayName}</p>
+            <p className="truncate text-xs text-muted-foreground">{email || "Signed-in user"}</p>
           </div>
         </section>
 
         {/* Security */}
         <section>
-          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Security
           </h2>
-          <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">
+          <div className="divide-y divide-border rounded-2xl border border-border bg-card">
             <div className="flex items-center justify-between gap-3 p-4">
               <div className="flex items-center gap-3">
-                <Lock className="h-5 w-5 text-slate-400" />
+                <Lock className="h-5 w-5 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium text-slate-800">App lock PIN</p>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-sm font-medium text-card-foreground">App lock PIN</p>
+                  <p className="text-xs text-muted-foreground">
                     {pinSet ? "PIN set" : "No PIN set"}
                   </p>
                 </div>
@@ -118,10 +120,10 @@ export default function Profile() {
             </div>
             <div className="flex items-center justify-between gap-3 p-4">
               <div className="flex items-center gap-3">
-                <Fingerprint className="h-5 w-5 text-slate-400" />
+                <Fingerprint className="h-5 w-5 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium text-slate-800">Biometric unlock</p>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-sm font-medium text-card-foreground">Biometric unlock</p>
+                  <p className="text-xs text-muted-foreground">
                     {bioSupported ? "Face / Fingerprint" : "Unavailable in this browser"}
                   </p>
                 </div>
@@ -129,15 +131,15 @@ export default function Profile() {
               {bioSupported ? (
                 <Switch checked={bioOn} disabled={busy} onCheckedChange={toggleBio} />
               ) : (
-                <span className="text-xs font-medium text-slate-300">N/A</span>
+                <span className="text-xs font-medium text-muted-foreground/60">N/A</span>
               )}
             </div>
           </div>
 
-          {bioMsg && <p className="mt-2 px-1 text-xs text-slate-500">{bioMsg}</p>}
+          {bioMsg && <p className="mt-2 px-1 text-xs text-muted-foreground">{bioMsg}</p>}
 
           {settingPin && (
-            <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-4">
+            <div className="mt-3 rounded-2xl border border-border bg-card p-4">
               <PinSetter onDone={saveNewPin} onCancel={() => setSettingPin(false)} />
             </div>
           )}
@@ -145,30 +147,30 @@ export default function Profile() {
 
         {/* Account */}
         <section>
-          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Account
           </h2>
-          <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">
+          <div className="divide-y divide-border rounded-2xl border border-border bg-card">
             <Link to="/forgot-password" className="flex items-center justify-between gap-3 p-4">
               <div className="flex items-center gap-3">
-                <KeyRound className="h-5 w-5 text-slate-400" />
-                <p className="text-sm font-medium text-slate-800">Change password</p>
+                <KeyRound className="h-5 w-5 text-muted-foreground" />
+                <p className="text-sm font-medium text-card-foreground">Change password</p>
               </div>
-              <span className="text-xs text-slate-400">Via email reset</span>
+              <span className="text-xs text-muted-foreground">Via email reset</span>
             </Link>
             <button onClick={signOut} className="flex w-full items-center gap-3 p-4 text-left">
-              <LogOut className="h-5 w-5 text-slate-400" />
+              <LogOut className="h-5 w-5 text-muted-foreground" />
               <p className="text-sm font-medium text-rose-600">Sign out</p>
             </button>
           </div>
         </section>
 
-        <div className="flex items-start gap-2 rounded-2xl bg-violet-50 p-3 text-xs text-violet-700">
-          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-violet-500" />
+        <div className="flex items-start gap-2 rounded-2xl bg-primary/10 p-3 text-xs text-primary">
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
           <p>Your app lock and biometric settings are stored only on this device.</p>
         </div>
 
-        {msg && <p className="text-center text-xs text-slate-500">{msg}</p>}
+        {msg && <p className="text-center text-xs text-muted-foreground">{msg}</p>}
       </main>
     </div>
   );
