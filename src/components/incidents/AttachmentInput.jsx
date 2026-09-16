@@ -24,8 +24,8 @@ export default function AttachmentInput({ attachments, onAdd, onRemove }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-start gap-2 rounded-xl bg-emerald-50 p-3 text-xs text-emerald-800">
-        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+      <div className="flex items-start gap-2 rounded-xl bg-emerald-500/10 p-3 text-xs text-emerald-700 dark:text-emerald-300">
+        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500 dark:text-emerald-400" />
         <p>
           Attachments are stored <span className="font-semibold">only on this device</span> for your
           privacy. They are never uploaded, and the AI never sees them.
@@ -37,7 +37,7 @@ export default function AttachmentInput({ attachments, onAdd, onRemove }) {
           {attachments.map((a, i) => (
             <div
               key={i}
-              className="relative aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-100"
+              className="relative aspect-square overflow-hidden rounded-xl border border-border bg-muted"
             >
               <img src={a.dataUrl} alt={a.name} className="h-full w-full object-cover" />
               <button
@@ -57,7 +57,7 @@ export default function AttachmentInput({ attachments, onAdd, onRemove }) {
           type="button"
           onClick={() => camRef.current?.click()}
           disabled={reading}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-3 py-4 text-sm text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card px-3 py-4 text-sm text-muted-foreground transition hover:bg-accent disabled:opacity-50"
         >
           {reading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
           Take photo
@@ -74,7 +74,7 @@ export default function AttachmentInput({ attachments, onAdd, onRemove }) {
           type="button"
           onClick={() => libRef.current?.click()}
           disabled={reading}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-3 py-4 text-sm text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card px-3 py-4 text-sm text-muted-foreground transition hover:bg-accent disabled:opacity-50"
         >
           {reading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
           From library

@@ -13,11 +13,11 @@ const NUMBERS = [
 
 export default function EmergencyNumbers() {
   return (
-    <div className="mt-2 rounded-2xl border-2 border-primary/60 bg-white p-4">
-      <ul className="divide-y divide-slate-100">
+    <div className="mt-2 rounded-2xl border-2 border-primary/60 bg-card p-4">
+      <ul className="divide-y divide-border">
         {NUMBERS.map((n) => (
           <li key={n.number} className="flex items-center justify-between gap-3 py-2.5">
-            <p className="min-w-0 text-sm font-medium text-slate-800">{n.label}</p>
+            <p className="min-w-0 text-sm font-medium text-card-foreground">{n.label}</p>
             <a
               href={`tel:${n.number.replace(/\s/g, "")}`}
               className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-sm font-semibold text-primary"

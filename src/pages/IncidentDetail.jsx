@@ -92,7 +92,7 @@ export default function IncidentDetail() {
 
   if (loading) {
     return (
-      <div className="flex min-h-dvh items-center justify-center text-slate-400">
+      <div className="flex min-h-dvh items-center justify-center text-muted-foreground">
         <Loader2 className="h-6 w-6 animate-spin" />
       </div>
     );
@@ -101,16 +101,16 @@ export default function IncidentDetail() {
   if (notFound) {
     return (
       <div className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-3 px-6 text-center">
-        <p className="text-lg font-semibold text-slate-800">Report not found</p>
-        <Link to="/" className="text-sm text-slate-500 underline">Back to reports</Link>
+        <p className="text-lg font-semibold text-foreground">Report not found</p>
+        <Link to="/" className="text-sm text-muted-foreground underline">Back to reports</Link>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto min-h-dvh max-w-md bg-slate-50">
-      <header className="sticky top-0 z-20 flex items-center justify-between bg-white/85 px-4 py-3 backdrop-blur-md">
-        <Link to="/" className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100">
+    <div className="mx-auto min-h-dvh max-w-md bg-background text-foreground">
+      <header className="sticky top-0 z-20 flex items-center justify-between bg-card/85 px-4 py-3 backdrop-blur-md">
+        <Link to="/" className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-accent">
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex gap-2">
@@ -120,7 +120,7 @@ export default function IncidentDetail() {
           </Button>
           <Button
             variant="outline" size="sm"
-            className="rounded-full text-rose-600 hover:bg-rose-50"
+            className="rounded-full text-rose-600 hover:bg-rose-500/10"
             onClick={handleDelete} disabled={deleting}
           >
             {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
@@ -132,43 +132,43 @@ export default function IncidentDetail() {
         <div className="flex flex-wrap items-center gap-2">
           <SeverityBadge severity={incident.severity} />
           <StatusBadge status={incident.status} />
-          <span className="text-xs text-slate-400">{CATEGORY_LABELS[incident.category] || incident.category}</span>
+          <span className="text-xs text-muted-foreground">{CATEGORY_LABELS[incident.category] || incident.category}</span>
         </div>
 
-        <h1 className="mt-3 text-xl font-semibold leading-snug text-slate-900">{incident.title}</h1>
+        <h1 className="mt-3 text-xl font-semibold leading-snug text-foreground">{incident.title}</h1>
 
-        <div className="mt-4 space-y-2 rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="mt-4 space-y-2 rounded-2xl border border-border bg-card p-4">
           {incident.location && (
-            <div className="flex items-center gap-2 text-sm text-slate-600">
-              <MapPin className="h-4 w-4 text-slate-400" /> {incident.location}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <MapPin className="h-4 w-4 text-muted-foreground" /> {incident.location}
             </div>
           )}
-          <div className="flex items-center gap-2 text-sm text-slate-600">
-            <CalendarDays className="h-4 w-4 text-slate-400" />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <CalendarDays className="h-4 w-4 text-muted-foreground" />
             {formatDate(incident.incident_date)} · {formatRelative(incident.incident_date)}
           </div>
         </div>
 
         {/* AI Report */}
-        <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="mt-4 rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4 text-slate-400" />
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <FileText className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Professional Report
             </h2>
           </div>
           {incident.ai_report ? (
-            <pre className="mt-2 max-h-72 overflow-y-auto whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-slate-700">
+            <pre className="mt-2 max-h-72 overflow-y-auto whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-card-foreground">
               {incident.ai_report}
             </pre>
           ) : (
-            <p className="mt-2 text-sm text-slate-400">No AI report was generated for this incident.</p>
+            <p className="mt-2 text-sm text-muted-foreground">No AI report was generated for this incident.</p>
           )}
         </div>
 
         {/* Attachments (local only) */}
-        <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Attachments</h2>
+        <div className="mt-4 rounded-2xl border border-border bg-card p-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Attachments</h2>
           <div className="mt-3">
             <AttachmentInput
               attachments={attachments}
@@ -176,15 +176,15 @@ export default function IncidentDetail() {
               onRemove={handleRemove}
             />
           </div>
-          <div className="mt-2 flex items-start gap-2 text-xs text-slate-400">
-            <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" />
+          <div className="mt-2 flex items-start gap-2 text-xs text-muted-foreground">
+            <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500 dark:text-emerald-400" />
             <p>Stored only on this device. They are included when you export the PDF.</p>
           </div>
         </div>
 
         {/* Status */}
-        <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Status</h2>
+        <div className="mt-4 rounded-2xl border border-border bg-card p-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</h2>
           <Select value={incident.status} onValueChange={changeStatus} disabled={updating}>
             <SelectTrigger className="mt-2 capitalize">
               {updating ? <Loader2 className="h-4 w-4 animate-spin" /> : <SelectValue />}
@@ -200,18 +200,18 @@ export default function IncidentDetail() {
         {/* Find authorities */}
         <Link
           to="/authorities"
-          className="mt-4 flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 hover:bg-slate-50"
+          className="mt-4 flex items-center justify-between rounded-2xl border border-border bg-card p-4 hover:bg-accent"
         >
           <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-rose-50 p-2">
+            <div className="rounded-xl bg-rose-500/10 p-2">
               <MapPin className="h-5 w-5 text-rose-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-900">Find nearby authorities</p>
-              <p className="text-xs text-slate-400">Police stations & government offices near you</p>
+              <p className="text-sm font-medium text-foreground">Find nearby authorities</p>
+              <p className="text-xs text-muted-foreground">Police stations & government offices near you</p>
             </div>
           </div>
-          <ArrowLeft className="h-4 w-4 rotate-180 text-slate-300" />
+          <ArrowLeft className="h-4 w-4 rotate-180 text-muted-foreground/50" />
         </Link>
       </main>
     </div>
