@@ -43,11 +43,15 @@ export default function NewReport() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  function canNext() {
-    if (step === 0) return !!category;
-    if (step === 1) return title.trim().length >= 3 && description.trim().length >= 10;
-    if (step === 3) return !!report;
-    return true;
+  function next() {
+    if (step === 0 && !category) { setError("Select a category to continue."); return; }
+    if (step === 1 && !(title.trim().length >= 3 && description.trim().length >= 10)) {
+      setError("Add a title and a description (min 10 characters) to continue.");
+      return;
+    }
+    if (step === 3 && !report) { setError("Generate your report to continue."); return; }
+    setError("");
+    setStep((s) => s + 1);
   }
 
   async function generate() {
@@ -334,8 +338,7 @@ export default function NewReport() {
           {step < STEPS.length - 1 ? (
             <Button
               className="flex-1 rounded-full"
-              disabled={!canNext()}
-              onClick={() => setStep((s) => s + 1)}
+              onClick={next}
             >
               Continue <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
