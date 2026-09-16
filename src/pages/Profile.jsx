@@ -9,9 +9,10 @@ import { base44 } from "@/api/base44Client";
 import {
   biometricAvailable, enableBiometric, biometricEnabled, disableBiometric,
 } from "@/lib/biometric";
+import { setStoredPin, PIN_KEY } from "@/lib/pin";
+import PinSetter from "@/components/security/PinSetter";
 
 const NAME_KEY = "sentinel_user_name";
-const PIN_KEY = "sentinel_app_pin";
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -20,6 +21,8 @@ export default function Profile() {
   const [pinSet, setPinSet] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
+  const [bioMsg, setBioMsg] = useState("");
+  const [settingPin, setSettingPin] = useState(false);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => setUser(null));
@@ -32,34 +35,35 @@ export default function Profile() {
 
   async function toggleBio(on) {
     setBusy(true);
-    setMsg("");
+    setBioMsg("");
     try {
       if (on) {
         await enableBiometric();
         setBioOn(true);
-        setMsg("Biometric unlock enabled.");
+        setBioMsg("Biometric unlock enabled.");
       } else {
         disableBiometric();
         setBioOn(false);
-        setMsg("Biometric unlock disabled.");
+        setBioMsg("Biometric unlock disabled.");
       }
     } catch (e) {
       setBioOn(false);
-      setMsg(e?.message || "Biometric is unavailable here. Use your PIN instead.");
+      setBioMsg(e?.message || "Biometric is unavailable here. Use your PIN instead.");
     } finally {
       setBusy(false);
     }
   }
 
-  function resetLock() {
-    if (!confirm("Reset your app lock? You'll set a new PIN next time you open Sentinel.")) return;
-    try {
-      localStorage.removeItem(PIN_KEY);
-    } catch {}
-    disableBiometric();
-    setBioOn(false);
-    setPinSet(false);
-    setMsg("App lock reset. Set a new PIN on next launch.");
+  function changePin() {
+    setMsg("");
+    setSettingPin(true);
+  }
+
+  function saveNewPin(pin) {
+    setStoredPin(pin);
+    setPinSet(true);
+    setSettingPin(false);
+    setMsg("PIN updated.");
   }
 
   async function signOut() {
@@ -99,14 +103,14 @@ export default function Profile() {
               <div className="flex items-center gap-3">
                 <Lock className="h-5 w-5 text-slate-400" />
                 <div>
-                  <p className="text-sm font-medium text-slate-800">App lock</p>
+                  <p className="text-sm font-medium text-slate-800">App lock PIN</p>
                   <p className="text-xs text-slate-400">
                     {pinSet ? "PIN set" : "No PIN set"}
                   </p>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="rounded-full" onClick={resetLock}>
-                Reset
+              <Button variant="outline" size="sm" className="rounded-full" onClick={changePin}>
+                {pinSet ? "Change" : "Set PIN"}
               </Button>
             </div>
             <div className="flex items-center justify-between gap-3 p-4">
@@ -115,17 +119,25 @@ export default function Profile() {
                 <div>
                   <p className="text-sm font-medium text-slate-800">Biometric unlock</p>
                   <p className="text-xs text-slate-400">
-                    {bioSupported ? "Face / Fingerprint" : "Not available on this device"}
+                    {bioSupported ? "Face / Fingerprint" : "Unavailable in this browser"}
                   </p>
                 </div>
               </div>
-              <Switch
-                checked={bioOn}
-                disabled={!bioSupported || busy}
-                onCheckedChange={toggleBio}
-              />
+              {bioSupported ? (
+                <Switch checked={bioOn} disabled={busy} onCheckedChange={toggleBio} />
+              ) : (
+                <span className="text-xs font-medium text-slate-300">N/A</span>
+              )}
             </div>
           </div>
+
+          {bioMsg && <p className="mt-2 px-1 text-xs text-slate-500">{bioMsg}</p>}
+
+          {settingPin && (
+            <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-4">
+              <PinSetter onDone={saveNewPin} onCancel={() => setSettingPin(false)} />
+            </div>
+          )}
         </section>
 
         {/* Account */}
