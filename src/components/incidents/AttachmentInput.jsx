@@ -1,9 +1,10 @@
 import React, { useRef, useState } from "react";
-import { Camera, X, Loader2, ShieldCheck } from "lucide-react";
+import { Camera, ImagePlus, X, Loader2, ShieldCheck } from "lucide-react";
 import { readAttachmentObject } from "@/lib/attachments";
 
 export default function AttachmentInput({ attachments, onAdd, onRemove }) {
-  const fileRef = useRef(null);
+  const camRef = useRef(null);
+  const libRef = useRef(null);
   const [reading, setReading] = useState(false);
 
   async function handleFiles(files) {
@@ -16,7 +17,8 @@ export default function AttachmentInput({ attachments, onAdd, onRemove }) {
       }
     } finally {
       setReading(false);
-      if (fileRef.current) fileRef.current.value = "";
+      if (camRef.current) camRef.current.value = "";
+      if (libRef.current) libRef.current.value = "";
     }
   }
 
@@ -50,23 +52,42 @@ export default function AttachmentInput({ attachments, onAdd, onRemove }) {
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => fileRef.current?.click()}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-4 py-5 text-sm text-slate-600 hover:bg-slate-50"
-      >
-        {reading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-        {reading ? "Reading…" : attachments.length ? "Add more" : "Add a photo / screenshot"}
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          multiple
-          capture="environment"
-          className="hidden"
-          onChange={(e) => handleFiles(e.target.files)}
-        />
-      </button>
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => camRef.current?.click()}
+          disabled={reading}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-3 py-4 text-sm text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
+        >
+          {reading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+          Take photo
+          <input
+            ref={camRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={(e) => handleFiles(e.target.files)}
+          />
+        </button>
+        <button
+          type="button"
+          onClick={() => libRef.current?.click()}
+          disabled={reading}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-3 py-4 text-sm text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
+        >
+          {reading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+          From library
+          <input
+            ref={libRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(e) => handleFiles(e.target.files)}
+          />
+        </button>
+      </div>
     </div>
   );
 }

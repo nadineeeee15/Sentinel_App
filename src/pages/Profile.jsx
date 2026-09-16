@@ -32,16 +32,20 @@ export default function Profile() {
 
   async function toggleBio(on) {
     setBusy(true);
+    setMsg("");
     try {
       if (on) {
         await enableBiometric();
         setBioOn(true);
+        setMsg("Biometric unlock enabled.");
       } else {
         disableBiometric();
         setBioOn(false);
+        setMsg("Biometric unlock disabled.");
       }
-    } catch {
-      setMsg("Biometric change failed.");
+    } catch (e) {
+      setBioOn(false);
+      setMsg(e?.message || "Biometric is unavailable here. Use your PIN instead.");
     } finally {
       setBusy(false);
     }

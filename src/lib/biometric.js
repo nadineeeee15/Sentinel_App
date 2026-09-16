@@ -7,6 +7,7 @@ const BIO_KEY = "sentinel_biometric";
 export async function biometricAvailable() {
   try {
     if (!window.PublicKeyCredential) return false;
+    if (!window.isSecureContext) return false;
     return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
   } catch {
     return false;
@@ -44,37 +45,46 @@ function fromBase64(str) {
 export async function enableBiometric() {
   const challenge = randomBytes(32);
   const userId = randomBytes(16);
-  const cred = await navigator.credentials.create({
-    publicKey: {
-      challenge,
-      rp: { name: "Sentinel" },
-      user: { id: userId, name: "Sentinel User", displayName: "Sentinel User" },
-      pubKeyCredParams: [
-        { type: "public-key", alg: -7 },
-        { type: "public-key", alg: -257 },
-      ],
-      authenticatorSelection: { userVerification: "required", residentKey: "preferred" },
-      timeout: 60000,
-    },
-  });
-  const credentialId = toBase64(cred.rawId);
-  localStorage.setItem(BIO_KEY, JSON.stringify({ credentialId }));
-  return true;
+  try {
+    const cred = await navigator.credentials.create({
+      publicKey: {
+        challenge,
+        rp: { name: "Sentinel" },
+        user: { id: userId, name: "Sentinel User", displayName: "Sentinel User" },
+        pubKeyCredParams: [
+          { type: "public-key", alg: -7 },
+          { type: "public-key", alg: -257 },
+        ],
+        authenticatorSelection: { userVerification: "required", residentKey: "discouraged" },
+        attestation: "none",
+        timeout: 60000,
+      },
+    });
+    const credentialId = toBase64(cred.rawId);
+    localStorage.setItem(BIO_KEY, JSON.stringify({ credentialId }));
+    return true;
+  } catch (e) {
+    throw new Error(e?.message || "Biometric setup was cancelled or blocked.");
+  }
 }
 
 export async function biometricUnlock() {
   const stored = JSON.parse(localStorage.getItem(BIO_KEY) || "null");
   if (!stored) return false;
   const challenge = randomBytes(32);
-  const assertion = await navigator.credentials.get({
-    publicKey: {
-      challenge,
-      timeout: 60000,
-      userVerification: "required",
-      allowCredentials: [{ type: "public-key", id: fromBase64(stored.credentialId) }],
-    },
-  });
-  return !!assertion;
+  try {
+    const assertion = await navigator.credentials.get({
+      publicKey: {
+        challenge,
+        timeout: 60000,
+        userVerification: "required",
+        allowCredentials: [{ type: "public-key", id: fromBase64(stored.credentialId) }],
+      },
+    });
+    return !!assertion;
+  } catch (e) {
+    throw new Error(e?.message || "Biometric unlock was cancelled or blocked.");
+  }
 }
 
 export function disableBiometric() {
