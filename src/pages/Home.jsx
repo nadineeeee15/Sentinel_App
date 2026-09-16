@@ -2,7 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Plus, Search, ShieldAlert, Loader2, MapPin, ShieldCheck, FileText, ChevronRight } from "lucide-react";
+import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
+import PixelDecor from "@/components/PixelDecor";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -66,16 +68,32 @@ export default function Home() {
     <div className="mx-auto min-h-dvh max-w-md bg-background">
       {/* Greeting header */}
       <header className="px-5 pb-3 pt-6">
-        <div className="rounded-3xl bg-gradient-to-br from-violet-600 to-violet-800 p-5 text-white shadow-lg shadow-violet-500/20">
-          <p className="text-xs font-medium uppercase tracking-wider text-violet-200">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600 to-violet-800 p-5 text-white shadow-lg shadow-violet-500/20">
+          <PixelDecor />
+          <motion.p
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="relative text-xs font-medium uppercase tracking-wider text-violet-200"
+          >
             {todayLabel()}
-          </p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">
+          </motion.p>
+          <motion.h1
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08, duration: 0.4 }}
+            className="relative mt-1 text-2xl font-semibold tracking-tight"
+          >
             {greeting()}, {firstName}
-          </h1>
-          <p className="mt-1 text-sm text-violet-100">
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.16, duration: 0.4 }}
+            className="relative mt-1 text-sm text-violet-100"
+          >
             Report what happened and stay safe.
-          </p>
+          </motion.p>
 
           <div className="mt-4 grid grid-cols-2 gap-2">
             <Link
@@ -149,11 +167,23 @@ export default function Home() {
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {filtered.map((i) => (
-              <IncidentCard key={i.id} incident={i} />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="space-y-3"
+          >
+            {filtered.map((i, idx) => (
+              <motion.div
+                key={i.id}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 * idx, duration: 0.35, ease: "easeOut" }}
+              >
+                <IncidentCard incident={i} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
 
         <div className="mt-6 flex items-start gap-2 rounded-2xl bg-violet-50 p-3 text-xs text-violet-700">
