@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import {
   biometricAvailable, enableBiometric, biometricEnabled, disableBiometric,
@@ -23,6 +24,7 @@ export default function Profile() {
   const [msg, setMsg] = useState("");
   const [bioMsg, setBioMsg] = useState("");
   const [settingPin, setSettingPin] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => setUser(null));
@@ -63,7 +65,8 @@ export default function Profile() {
     setStoredPin(pin);
     setPinSet(true);
     setSettingPin(false);
-    setMsg("PIN updated.");
+    setMsg("The PIN has been reset.");
+    toast({ title: "The PIN has been reset." });
   }
 
   async function signOut() {
