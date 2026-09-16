@@ -144,9 +144,17 @@ export async function searchAuthorities(query) {
     "https://nominatim.openstreetmap.org/search?q=" +
     encodeURIComponent(q) +
     "&format=json&extratags=1&addressdetails=1&limit=12";
-  const res = await fetchWithTimeout(url, { headers: { Accept: "application/json" } }, 12000);
-  if (!res.ok) throw new Error("Could not reach the map service. Try again in a moment.");
-  const json = await res.json();
+  async function attempt() {
+    const res = await fetchWithTimeout(url, { headers: { Accept: "application/json" } }, 12000);
+    if (!res.ok) throw new Error("Could not reach the map service. Try again in a moment.");
+    return res.json();
+  }
+  let json;
+  try {
+    json = await attempt();
+  } catch {
+    json = await attempt();
+  }
   return (json || []).map((r) => {
     const tags = r.extratags || {};
     return {

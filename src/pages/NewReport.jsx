@@ -122,7 +122,7 @@ export default function NewReport() {
       <main className="px-5 pb-28 pt-4">
         {step === 0 && (
           <div className="space-y-3">
-            <p className="text-sm text-slate-500">What type of cybersecurity incident are you reporting?</p>
+            <p className="text-sm text-slate-500">What type of incident are you reporting?</p>
             <CategorySelect value={category} onChange={setCategory} />
           </div>
         )}
