@@ -4,6 +4,8 @@
 const OVERPASS_ENDPOINTS = [
   "https://overpass-api.de/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter",
+  "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter",
 ];
 
 // OSM tag groups per category. "government" covers government offices & town
@@ -43,11 +45,54 @@ function buildQuery(lat, lon, radiusMeters, category) {
       `way["${k}"="${v}"](around:${radiusMeters},${lat},${lon});`,
     ])
     .join("\n  ");
-  return `[out:json][timeout:25];
+  return `[out:json][timeout:20];
 (
   ${lines}
 );
 out center 30;`;
+}
+
+function fetchWithTimeout(url, opts, ms = 12000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), ms);
+  return fetch(url, { ...opts, signal: controller.signal }).finally(() =>
+    clearTimeout(id)
+  );
+}
+
+function mapElements(json, lat, lon) {
+  const items = (json.elements || []).map((el) => {
+    const elat = el.lat ?? el.center?.lat;
+    const elon = el.lon ?? el.center?.lon;
+    return {
+      id: `${el.type}/${el.id}`,
+      name: labelFor(el),
+      kind: kindFor(el),
+      lat: elat,
+      lon: elon,
+      distance: elat != null && elon != null ? haversineMeters(lat, lon, elat, elon) : null,
+      phone: el.tags?.["phone"] || el.tags?.["contact:phone"] || null,
+      website: el.tags?.["website"] || el.tags?.["contact:website"] || null,
+    };
+  });
+  return items
+    .filter((i) => i.distance != null)
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, 25);
+}
+
+async function attemptEndpoint(endpoint, query, lat, lon) {
+  const res = await fetchWithTimeout(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json",
+    },
+    body: "data=" + encodeURIComponent(query),
+  });
+  if (!res.ok) throw new Error(`${endpoint} returned ${res.status}`);
+  const json = await res.json();
+  return mapElements(json, lat, lon);
 }
 
 function labelFor(element) {
@@ -69,44 +114,16 @@ function kindFor(element) {
   return "other";
 }
 
-export async function getNearbyAuthorities(lat, lon, { radiusMeters = 12000, category = "all" } = {}) {
+export async function getNearbyAuthorities(lat, lon, { radiusMeters = 10000, category = "all" } = {}) {
   const query = buildQuery(lat, lon, radiusMeters, category);
-  let lastError = null;
-  for (const endpoint of OVERPASS_ENDPOINTS) {
-    try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: "data=" + encodeURIComponent(query),
-      });
-      if (!res.ok) {
-        lastError = new Error(`Overpass returned ${res.status}`);
-        continue;
-      }
-      const json = await res.json();
-      const items = (json.elements || []).map((el) => {
-        const elat = el.lat ?? el.center?.lat;
-        const elon = el.lon ?? el.center?.lon;
-        return {
-          id: `${el.type}/${el.id}`,
-          name: labelFor(el),
-          kind: kindFor(el),
-          lat: elat,
-          lon: elon,
-          distance: elat != null && elon != null ? haversineMeters(lat, lon, elat, elon) : null,
-          phone: el.tags?.["phone"] || el.tags?.["contact:phone"] || null,
-          website: el.tags?.["website"] || el.tags?.["contact:website"] || null,
-        };
-      });
-      return items
-        .filter((i) => i.distance != null)
-        .sort((a, b) => a.distance - b.distance)
-        .slice(0, 25);
-    } catch (e) {
-      lastError = e;
-    }
+  // Race all mirrors in parallel — first successful response wins, so a slow
+  // or rate-limited endpoint never blocks the result.
+  const attempts = OVERPASS_ENDPOINTS.map((ep) => attemptEndpoint(ep, query, lat, lon));
+  try {
+    return await Promise.any(attempts);
+  } catch (e) {
+    throw new Error("Could not reach the map service. Try again in a moment.");
   }
-  throw lastError || new Error("Could not reach the map service.");
 }
 
 export function formatDistance(m) {
@@ -124,7 +141,7 @@ export function getCurrentPosition() {
     navigator.geolocation.getCurrentPosition(
       (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
       (err) => reject(new Error(err.message || "Could not get your location.")),
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     );
   });
 }
