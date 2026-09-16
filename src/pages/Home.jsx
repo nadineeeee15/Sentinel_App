@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import IncidentCard from "@/components/incidents/IncidentCard";
 import StatPills from "@/components/incidents/StatPills";
+import { useTheme } from "@/lib/ThemeContext";
 
 const STATUSES = ["all", "draft", "completed"];
 
@@ -26,6 +27,7 @@ function todayLabel() {
 }
 
 export default function Home() {
+  const { dark } = useTheme();
   const [incidents, setIncidents] = useState(null);
   const [user, setUser] = useState(null);
   const [query, setQuery] = useState("");
@@ -65,7 +67,7 @@ export default function Home() {
   const reportsReady = (incidents || []).filter((i) => i.ai_report).length;
 
   return (
-    <div className="mx-auto min-h-dvh max-w-md bg-background text-foreground dark:bg-gradient-to-b dark:from-[#0d0518] dark:via-[#120724] dark:to-[#08030f] dark:text-white">
+    <div className={`mx-auto min-h-dvh max-w-md ${dark ? "bg-gradient-to-b from-[#0d0518] via-[#120724] to-[#08030f] text-white" : "bg-background text-foreground"}`}>
       {/* Greeting header */}
       <header className="px-5 pb-3 pt-6">
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-500 via-violet-600 to-fuchsia-700 p-5 text-white shadow-2xl shadow-fuchsia-900/30">
