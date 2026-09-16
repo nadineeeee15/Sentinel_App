@@ -4,6 +4,8 @@ import { Delete, ShieldAlert, Fingerprint, Loader2, ArrowRight } from "lucide-re
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Image } from "@/components/ui/image";
+import { motion } from "framer-motion";
+import SentinelLogo from "@/components/SentinelLogo";
 import { cn } from "@/lib/utils";
 import {
   biometricAvailable, enableBiometric, biometricEnabled, biometricUnlock, disableBiometric,
@@ -204,19 +206,30 @@ export default function AppLock() {
     return (
       <div className="mx-auto flex min-h-dvh max-w-md flex-col bg-gradient-to-b from-violet-100 via-violet-50 to-background px-6">
         <div className="flex flex-1 flex-col items-center justify-center text-center">
-          <Image
-            src={LOGO_URL}
-            fittingType="fit"
-            className="h-28 w-28 rounded-3xl shadow-lg shadow-violet-500/20"
-          />
-          <h1 className="mt-6 text-2xl font-semibold tracking-tight text-slate-900">
+          <SentinelLogo size="h-28 w-28" />
+          <motion.h1
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45, duration: 0.5 }}
+            className="mt-6 text-2xl font-semibold tracking-tight text-slate-900"
+          >
             Welcome to Sentinel
-          </h1>
-          <p className="mt-2 max-w-xs text-sm text-slate-500">
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.5 }}
+            className="mt-2 max-w-xs text-sm text-slate-500"
+          >
             Your private guardian — here to safeguard and help you when it matters most.
-          </p>
+          </motion.p>
         </div>
-        <div className="pb-10">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.75, duration: 0.5 }}
+          className="pb-10"
+        >
           <label className="mb-1.5 block text-sm font-medium text-slate-700">
             What's your name?
           </label>
@@ -232,7 +245,7 @@ export default function AppLock() {
             Continue <ArrowRight className="h-4 w-4" />
           </Button>
           {error && <p className="mt-2 text-sm text-rose-600">{error}</p>}
-        </div>
+        </motion.div>
       </div>
     );
   }
