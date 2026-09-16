@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Image } from "@/components/ui/image";
 
-const LOGO_URL = "https://media.base44.com/images/public/6aa9facc831bca800f220eb4/69bc80527_IMG_3083.jpeg";
+const LOGO_URL = "https://media.base44.com/images/public/6aa9facc831bca800f220eb4/d81d6de40_CanvaAIImageSep172026at12_16_00AM.jpeg";
 
 export default function SentinelLogo({ size = "h-28 w-28", animate = true }) {
   if (!animate) {

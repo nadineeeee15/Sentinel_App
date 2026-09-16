@@ -3,7 +3,6 @@ import { Outlet } from "react-router-dom";
 import { Delete, ShieldAlert, Fingerprint, Loader2, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Image } from "@/components/ui/image";
 import { motion } from "framer-motion";
 import SentinelLogo from "@/components/SentinelLogo";
 import { cn } from "@/lib/utils";
@@ -11,7 +10,6 @@ import {
   biometricAvailable, enableBiometric, biometricEnabled, biometricUnlock, disableBiometric,
 } from "@/lib/biometric";
 
-const LOGO_URL = "https://media.base44.com/images/public/6aa9facc831bca800f220eb4/69bc80527_IMG_3083.jpeg";
 const NAME_KEY = "sentinel_user_name";
 const PIN_KEY = "sentinel_app_pin";
 
@@ -206,7 +204,7 @@ export default function AppLock() {
     return (
       <div className="mx-auto flex min-h-dvh max-w-md flex-col bg-gradient-to-b from-violet-100 via-violet-50 to-background px-6">
         <div className="flex flex-1 flex-col items-center justify-center text-center">
-          <SentinelLogo size="h-28 w-28" />
+          <SentinelLogo size="h-48 w-48" />
           <motion.h1
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -254,7 +252,7 @@ export default function AppLock() {
   if (stage === "setPin") {
     return (
       <div className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center bg-gradient-to-b from-violet-100 via-violet-50 to-background px-6 py-10 text-center">
-        <Image src={LOGO_URL} fittingType="fit" className="h-20 w-20 rounded-2xl" />
+        <SentinelLogo size="h-20 w-20" animate={false} />
         <h1 className="mt-4 text-xl font-semibold text-slate-900">Set your app PIN</h1>
         <p className="mt-1 max-w-xs text-sm text-slate-500">
           {setStep === "confirm" ? "Re-enter your PIN to confirm" : "Choose a 4-digit PIN to protect your reports"}
@@ -283,7 +281,7 @@ export default function AppLock() {
   const firstName = (getStoredName() || "").split(" ")[0] || "there";
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center bg-gradient-to-b from-violet-100 via-violet-50 to-background px-6 py-10 text-center">
-      <Image src={LOGO_URL} fittingType="fit" className="h-24 w-24 rounded-3xl shadow-lg shadow-violet-500/20" />
+      <SentinelLogo size="h-24 w-24" animate={false} />
       <h1 className="mt-4 text-xl font-semibold text-slate-900">Welcome back, {firstName}</h1>
       <p className="mt-1 text-sm text-slate-500">Enter your PIN to unlock</p>
       <Dots display={display} shake={shake} />
