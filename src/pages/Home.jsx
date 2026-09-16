@@ -65,7 +65,7 @@ export default function Home() {
   const reportsReady = (incidents || []).filter((i) => i.ai_report).length;
 
   return (
-    <div className="mx-auto min-h-dvh max-w-md bg-gradient-to-b from-[#0d0518] via-[#120724] to-[#08030f]">
+    <div className="mx-auto min-h-dvh max-w-md bg-background text-foreground dark:bg-gradient-to-b dark:from-[#0d0518] dark:via-[#120724] dark:to-[#08030f] dark:text-white">
       {/* Greeting header */}
       <header className="px-5 pb-3 pt-6">
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-500 via-violet-600 to-fuchsia-700 p-5 text-white shadow-2xl shadow-fuchsia-900/30">
@@ -114,16 +114,16 @@ export default function Home() {
         {/* Search + filter */}
         <div className="mt-4 flex gap-2">
           <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-violet-200/70" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground dark:text-violet-200/70" />
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search reports"
-              className="rounded-full border-white/10 bg-white/10 text-white placeholder:text-violet-200/60 pl-9"
+              className="rounded-full border-border bg-card text-foreground placeholder:text-muted-foreground pl-9 dark:border-white/10 dark:bg-white/10 dark:text-white dark:placeholder:text-violet-200/60"
             />
           </div>
           <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger className="w-[8.5rem] rounded-full border-white/10 bg-white/10 text-white capitalize backdrop-blur">
+            <SelectTrigger className="w-[8.5rem] rounded-full border-border bg-card text-foreground capitalize backdrop-blur dark:border-white/10 dark:bg-white/10 dark:text-white">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -142,25 +142,25 @@ export default function Home() {
       {/* List */}
       <main className="px-5 pb-16 pt-2">
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-violet-100">Recent reports</h2>
+          <h2 className="text-sm font-semibold text-foreground dark:text-violet-100">Recent reports</h2>
           {incidents != null && (
-            <span className="text-xs text-violet-300/70">{reportsReady} with AI report</span>
+            <span className="text-xs text-muted-foreground dark:text-violet-300/70">{reportsReady} with AI report</span>
           )}
         </div>
 
         {incidents === null ? (
-          <div className="flex items-center justify-center py-20 text-violet-300/70">
+          <div className="flex items-center justify-center py-20 text-muted-foreground dark:text-violet-300/70">
             <Loader2 className="h-6 w-6 animate-spin" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="mt-10 flex flex-col items-center text-center text-violet-300/70">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-              <ShieldAlert className="h-8 w-8 text-violet-300" />
+          <div className="mt-10 flex flex-col items-center text-center text-muted-foreground dark:text-violet-300/70">
+            <div className="rounded-2xl border border-border bg-card p-4 dark:border-white/10 dark:bg-white/5">
+              <ShieldAlert className="h-8 w-8 text-primary dark:text-violet-300" />
             </div>
-            <p className="mt-3 text-sm font-medium text-violet-100">
+            <p className="mt-3 text-sm font-medium text-foreground dark:text-violet-100">
               {incidents.length === 0 ? "No incidents reported yet" : "No matches"}
             </p>
-            <p className="mt-1 text-xs text-violet-300/60">
+            <p className="mt-1 text-xs text-muted-foreground dark:text-violet-300/60">
               {incidents.length === 0
                 ? "Tap “New report” to begin."
                 : "Try a different search or filter."}
@@ -186,8 +186,8 @@ export default function Home() {
           </motion.div>
         )}
 
-        <div className="mt-6 flex items-start gap-2 rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-violet-200">
-          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-violet-300" />
+        <div className="mt-6 flex items-start gap-2 rounded-2xl border border-border bg-card p-3 text-xs text-muted-foreground dark:border-white/10 dark:bg-white/5 dark:text-violet-200">
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary dark:text-violet-300" />
           <p>Photos and screenshots you attach are stored only on this device for your privacy.</p>
         </div>
       </main>
