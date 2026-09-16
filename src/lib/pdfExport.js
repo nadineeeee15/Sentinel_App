@@ -62,9 +62,9 @@ export function exportReportPDF(incident, attachments = []) {
   doc.setFontSize(10);
   doc.setTextColor(71, 85, 105);
   const meta = [
+    ["Report number", incident.report_number || "Not assigned"],
     ["Category", CATEGORY_LABELS[incident.category] || incident.category],
     ["Severity", (incident.severity || "medium").toUpperCase()],
-    ["Status", (incident.status || "reported").replace("_", " ")],
     ["When", incident.incident_date ? formatDate(incident.incident_date) : "Not provided"],
     ["Where", incident.location || "Not provided"],
     ["Report generated", incident.report_generated_date ? formatDate(incident.report_generated_date) : "Not generated"],

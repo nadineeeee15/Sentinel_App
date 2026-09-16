@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import {
-  ArrowLeft, MapPin, CalendarDays, Trash2, Loader2, Download, FileText, ShieldCheck,
+  ArrowLeft, MapPin, CalendarDays, Trash2, Loader2, Download, FileText, ShieldCheck, Hash,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -138,6 +138,13 @@ export default function IncidentDetail() {
         <h1 className="mt-3 text-xl font-semibold leading-snug text-foreground">{incident.title}</h1>
 
         <div className="mt-4 space-y-2 rounded-2xl border border-border bg-card p-4">
+          {incident.report_number && (
+            <div className="flex items-center gap-2 text-sm">
+              <Hash className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Report #</span>
+              <span className="font-medium text-foreground">{incident.report_number}</span>
+            </div>
+          )}
           {incident.location && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <MapPin className="h-4 w-4 text-muted-foreground" /> {incident.location}

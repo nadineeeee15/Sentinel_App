@@ -37,6 +37,7 @@ export default function NewReport() {
   const [incidentDate, setIncidentDate] = useState(toLocalInput(new Date().toISOString()));
   const [attachments, setAttachments] = useState([]);
   const [report, setReport] = useState("");
+  const [reportNumber, setReportNumber] = useState("");
   const [generatedAt, setGeneratedAt] = useState("");
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -58,6 +59,7 @@ export default function NewReport() {
         incidentDate: new Date(incidentDate).toISOString(),
       });
       setReport(res.data.report);
+      setReportNumber(res.data.report_number);
       setGeneratedAt(res.data.generated_at);
     } catch (e) {
       setError(e?.response?.data?.error || e?.message || "Could not generate the report.");
@@ -80,6 +82,7 @@ export default function NewReport() {
         incident_date: new Date(incidentDate).toISOString(),
         ai_report: report,
         report_generated_date: generatedAt,
+        report_number: reportNumber,
       });
       if (attachments.length) {
         try { await persistInMemoryAttachments(created.id, attachments); } catch {}
@@ -94,7 +97,7 @@ export default function NewReport() {
   const incidentForPdf = {
     title, category, severity, status: "draft",
     location, incident_date: new Date(incidentDate).toISOString(),
-    ai_report: report, report_generated_date: generatedAt,
+    ai_report: report, report_generated_date: generatedAt, report_number: reportNumber,
   };
 
   return (

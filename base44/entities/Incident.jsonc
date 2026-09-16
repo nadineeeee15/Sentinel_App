@@ -63,6 +63,11 @@
       "format": "date-time",
       "title": "Incident Date"
     },
+    "report_number": {
+      "type": "string",
+      "title": "Report Number",
+      "description": "Unique reference number assigned when the AI report is generated"
+    },
     "ai_report": {
       "type": "string",
       "title": "AI Report",

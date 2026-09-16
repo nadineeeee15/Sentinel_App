@@ -15,6 +15,13 @@ const CATEGORY_LABELS = {
   other: "Other Incident"
 };
 
+function generateReportNumber() {
+  const d = new Date();
+  const ymd = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+  const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `INC-${ymd}-${rand}`;
+}
+
 function buildPrompt(input) {
   const categoryLabel = CATEGORY_LABELS[input.category] || input.category;
   const when = input.incidentDate ? new Date(input.incidentDate).toLocaleString() : "Not specified";
@@ -37,9 +44,9 @@ Produce the report with exactly these sections:
 ## 1. Report Overview
 (A one-paragraph summary: category, severity, when, where, and the nature of the incident.)
 ## 2. Incident Classification
+- Report Number: ${input.reportNumber}
 - Category: ${categoryLabel}
 - Severity: ${severity}
-- Status: Reported
 ## 3. Incident Description
 (A clear, formal restatement of what the reporter described. Preserve all concrete facts: what happened, what was said or done, how often, who was involved, and any channels used (messages, calls, social media, email, or in person). Do not add new facts.)
 ## 4. Chronology
@@ -82,10 +89,11 @@ export default async function(req) {
       return Response.json({ error: 'Description and category are required' }, { status: 400 });
     }
 
-    const prompt = buildPrompt({ title, category, severity, description, location, incidentDate });
+    const reportNumber = generateReportNumber();
+    const prompt = buildPrompt({ title, category, severity, description, location, incidentDate, reportNumber });
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt });
 
-    return Response.json({ report: result, generated_at: new Date().toISOString() });
+    return Response.json({ report: result, generated_at: new Date().toISOString(), report_number: reportNumber });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
