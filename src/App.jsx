@@ -15,6 +15,7 @@ import Home from '@/pages/Home';
 import NewReport from '@/pages/NewReport';
 import IncidentDetail from '@/pages/IncidentDetail';
 import Authorities from '@/pages/Authorities';
+import AppLock from '@/components/AppLock';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -43,10 +44,12 @@ const AuthenticatedApp = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/new" element={<NewReport />} />
-        <Route path="/incidents/:id" element={<IncidentDetail />} />
-        <Route path="/authorities" element={<Authorities />} />
+        <Route element={<AppLock />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/new" element={<NewReport />} />
+          <Route path="/incidents/:id" element={<IncidentDetail />} />
+          <Route path="/authorities" element={<Authorities />} />
+        </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

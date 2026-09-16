@@ -90,7 +90,7 @@ export default function Authorities() {
                     <a
                       href={`https://www.google.com/maps/dir/?api=1&destination=${it.lat},${it.lon}`}
                       target="_blank" rel="noreferrer"
-                      className="inline-flex items-center gap-1 rounded-full bg-slate-900 px-2.5 py-1 text-xs text-white"
+                      className="inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-xs text-primary-foreground"
                     >
                       <Navigation className="h-3.5 w-3.5" /> Directions
                     </a>

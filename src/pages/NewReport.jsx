@@ -113,7 +113,7 @@ export default function NewReport() {
           {STEPS.map((_, i) => (
             <div
               key={i}
-              className={`h-1.5 flex-1 rounded-full ${i <= step ? "bg-slate-900" : "bg-slate-200"}`}
+              className={`h-1.5 flex-1 rounded-full ${i <= step ? "bg-primary" : "bg-slate-200"}`}
             />
           ))}
         </div>

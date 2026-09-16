@@ -37,7 +37,7 @@ export default function CategorySelect({ value, onChange }) {
             className={cn(
               "flex flex-col items-center gap-1.5 rounded-2xl border p-3 text-center transition active:scale-[0.98]",
               active
-                ? "border-slate-900 bg-slate-900 text-white shadow-sm"
+                ? "border-primary bg-primary text-primary-foreground shadow-sm"
                 : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
             )}
           >
