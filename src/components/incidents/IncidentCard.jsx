@@ -9,7 +9,7 @@ export default function IncidentCard({ incident }) {
   return (
     <Link
       to={`/incidents/${incident.id}`}
-      className="group block rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all hover:border-slate-300 hover:shadow-md active:scale-[0.99]"
+      className="group block rounded-2xl border border-white/10 bg-white p-4 shadow-lg shadow-violet-950/40 transition-all hover:border-violet-300 hover:shadow-xl hover:shadow-violet-700/30 active:scale-[0.99]"
     >
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">

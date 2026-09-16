@@ -16,8 +16,8 @@ export default function StatPills({ incidents }) {
   }, [incidents]);
 
   const pills = [
-    { label: "Draft", value: counts.draft, tone: "text-amber-600" },
-    { label: "Completed", value: counts.completed, tone: "text-emerald-600" },
+    { label: "Draft", value: counts.draft, tone: "text-amber-400" },
+    { label: "Completed", value: counts.completed, tone: "text-emerald-400" },
   ];
 
   return (
@@ -29,12 +29,12 @@ export default function StatPills({ incidents }) {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 + i * 0.08, type: "spring", stiffness: 260, damping: 14 }}
           whileTap={{ scale: 0.92 }}
-          className="cursor-pointer rounded-xl bg-slate-100 px-2 py-2 text-center transition hover:bg-slate-200/70"
+          className="cursor-pointer rounded-xl border border-white/10 bg-white/5 px-2 py-2 text-center backdrop-blur transition hover:bg-white/10"
         >
           <p className={`text-lg font-semibold leading-none ${p.tone}`}>
             {incidents === null ? "–" : p.value}
           </p>
-          <p className="mt-1 text-[10px] font-medium uppercase tracking-wide text-slate-400">
+          <p className="mt-1 text-[10px] font-medium uppercase tracking-wide text-violet-300/70">
             {p.label}
           </p>
         </motion.div>
