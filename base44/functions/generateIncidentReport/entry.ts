@@ -1,18 +1,18 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 
 const CATEGORY_LABELS = {
-  phishing: "Phishing",
-  malware: "Malware",
-  ransomware: "Ransomware",
-  data_breach: "Data Breach",
-  unauthorized_access: "Unauthorized Access",
-  social_engineering: "Social Engineering",
-  ddos: "Denial of Service (DDoS)",
-  account_compromise: "Account Compromise",
-  insider_threat: "Insider Threat",
+  stalking: "Stalking",
+  harassment: "Harassment",
+  cyberbullying: "Cyberbullying",
+  threats: "Threats / Intimidation",
+  domestic_abuse: "Domestic Abuse",
+  hate_speech: "Hate Speech",
+  image_based_abuse: "Image-Based Abuse",
+  doxxing: "Doxxing / Private Information Shared",
   identity_theft: "Identity Theft",
   online_fraud: "Online Fraud / Scam",
-  other: "Other Cybersecurity Incident"
+  phishing: "Phishing",
+  other: "Other Incident"
 };
 
 function buildPrompt(input) {
@@ -21,18 +21,19 @@ function buildPrompt(input) {
   const where = input.location || "Not specified";
   const severity = (input.severity || "medium").toUpperCase();
 
-  return `You are a specialist cybersecurity incident report writer. A user has reported a cybersecurity incident and provided a raw firsthand description. Your job is to transform that raw account into a clear, formal, professional incident report that the reporter could submit to a local authority (such as a police station, a national Computer Emergency Response Team (CERT), or a cybercrime unit).
+  return `You are a specialist incident report writer who helps people who have been victimised — including stalking, harassment, cyberbullying, abuse, and online harm — document what happened to them. A person has reported an incident and provided a raw firsthand description. Your job is to transform that raw account into a clear, formal, factual incident report that the reporter could submit to a local authority (such as a police station, a community safety office, or a victim support service).
 
 STRICT RULES:
-- Use ONLY the facts the reporter provided. Do NOT invent names, dates, URLs, account numbers, suspect identities, financial amounts, or technical indicators that are not present in the input.
+- Use ONLY the facts the reporter provided. Do NOT invent names, dates, addresses, account numbers, suspect identities, or any details not present in the input.
 - If a detail is missing, write "Not provided" rather than guessing.
 - Do NOT request or reference any images or attachments — this report is generated from text only, for privacy. You may include a placeholder note that supporting evidence (screenshots/photos) is retained locally by the reporter and is available on request.
-- Write in a formal, objective, third-person tone suitable for an official submission.
+- Write in a formal, objective, third-person tone suitable for an official submission, but remain respectful and non-judgmental toward the reporter. Refer to them as "the reporter".
+- Do not speculate about the perpetrator's identity or motives beyond what the reporter stated.
 - Use Markdown with the section headings below, in this order.
 
 Produce the report with exactly these sections:
 
-# Cybersecurity Incident Report
+# Incident Report
 ## 1. Report Overview
 (A one-paragraph summary: category, severity, when, where, and the nature of the incident.)
 ## 2. Incident Classification
@@ -40,15 +41,15 @@ Produce the report with exactly these sections:
 - Severity: ${severity}
 - Status: Reported
 ## 3. Incident Description
-(A clear, formal restatement of what the reporter described. Preserve all concrete facts: what happened, how it was discovered, what systems/accounts/data were involved, and any indicators of compromise mentioned. Do not add new facts.)
+(A clear, formal restatement of what the reporter described. Preserve all concrete facts: what happened, what was said or done, how often, who was involved, and any channels used (messages, calls, social media, email, or in person). Do not add new facts.)
 ## 4. Chronology
 (A simple timeline based only on dates/times the reporter gave. If none were given, state "Not provided".)
-## 5. Impact Assessment
-(Describe the potential or actual impact based strictly on the report — e.g. data exposed, systems affected, financial loss mentioned, services disrupted. If impact is unknown, say so.)
+## 5. Impact on the Reporter
+(Describe the impact based strictly on the report — e.g. fear, distress, disruption to daily life, financial loss, safety concerns. If impact is unknown, say so.)
 ## 6. Evidence Retained
-(Short note: the reporter has retained supporting evidence (e.g. screenshots, photos) locally on their device for privacy. Available to authorities on request.)
+(Short note: the reporter has retained supporting evidence (e.g. screenshots, photos, messages) locally on their device for privacy. Available to authorities on request.)
 ## 7. Recommended Actions
-(3-6 concise, practical next steps appropriate for this category — e.g. preserve evidence, change credentials, report to bank, contact CERT, file a police report. Generic best-practice guidance, not specific facts about this case.)
+(3-6 concise, practical next steps appropriate for this category — e.g. preserve evidence, block and report the account, keep a log of any further contact, contact police if in immediate danger, reach out to a victim support service. Generic best-practice guidance, not specific facts about this case.)
 ## 8. Reporter's Notes
 (Any additional context the reporter included that did not fit above, or "None provided".)
 

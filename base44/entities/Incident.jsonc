@@ -5,7 +5,7 @@
     "title": {
       "type": "string",
       "title": "Title",
-      "description": "Short summary of the cybersecurity incident",
+      "description": "Short summary of the incident",
       "minLength": 3,
       "maxLength": 140
     },
@@ -28,17 +28,17 @@
     "category": {
       "type": "string",
       "enum": [
-        "phishing",
-        "malware",
-        "ransomware",
-        "data_breach",
-        "unauthorized_access",
-        "social_engineering",
-        "ddos",
-        "account_compromise",
-        "insider_threat",
+        "stalking",
+        "harassment",
+        "cyberbullying",
+        "threats",
+        "domestic_abuse",
+        "hate_speech",
+        "image_based_abuse",
+        "doxxing",
         "identity_theft",
         "online_fraud",
+        "phishing",
         "other"
       ],
       "title": "Category",

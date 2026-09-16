@@ -73,7 +73,7 @@ export default function Home() {
             {greeting()}, {firstName}
           </h1>
           <p className="mt-1 text-sm text-violet-100">
-            Stay on top of your cybersecurity reports.
+            Report what happened and stay safe.
           </p>
 
           <div className="mt-4 grid grid-cols-2 gap-2">

@@ -2,18 +2,18 @@ import { jsPDF } from "jspdf";
 import { formatDate } from "@/lib/dates";
 
 const CATEGORY_LABELS = {
-  phishing: "Phishing",
-  malware: "Malware",
-  ransomware: "Ransomware",
-  data_breach: "Data Breach",
-  unauthorized_access: "Unauthorized Access",
-  social_engineering: "Social Engineering",
-  ddos: "Denial of Service (DDoS)",
-  account_compromise: "Account Compromise",
-  insider_threat: "Insider Threat",
+  stalking: "Stalking",
+  harassment: "Harassment",
+  cyberbullying: "Cyberbullying",
+  threats: "Threats / Intimidation",
+  domestic_abuse: "Domestic Abuse",
+  hate_speech: "Hate Speech",
+  image_based_abuse: "Image-Based Abuse",
+  doxxing: "Doxxing / Private Information Shared",
   identity_theft: "Identity Theft",
   online_fraud: "Online Fraud / Scam",
-  other: "Other Cybersecurity Incident",
+  phishing: "Phishing",
+  other: "Other Incident",
 };
 
 function imageFormatFromDataUrl(dataUrl) {
@@ -39,12 +39,12 @@ export function exportReportPDF(incident, attachments = []) {
   };
 
   // Header band
-  doc.setFillColor(15, 23, 42);
+  doc.setFillColor(124, 58, 237);
   doc.rect(0, 0, pageW, 64, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(15);
-  doc.text("Cybersecurity Incident Report", margin, 40);
+  doc.text("Incident Report", margin, 40);
   doc.setTextColor(148, 163, 184);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);

@@ -135,7 +135,7 @@ export default function NewReport() {
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Fake bank login page link in SMS"
+                placeholder="e.g. Someone keeps messaging me from new numbers"
                 maxLength={140}
               />
             </div>
@@ -176,7 +176,7 @@ export default function NewReport() {
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe what happened in your own words — what you saw, how you discovered it, what was affected, any messages or links involved…"
+                placeholder="Describe what happened in your own words — what was said or done, when and how often, who was involved, and how it affected you…"
                 rows={6}
               />
               <p className="text-xs text-slate-400">{description.trim().length} characters · min 10</p>

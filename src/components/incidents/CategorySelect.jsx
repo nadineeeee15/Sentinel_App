@@ -1,22 +1,22 @@
 import React from "react";
 import {
-  Fish, Bug, Lock, Database, KeyRound, Users, Network,
-  UserX, UserMinus, Fingerprint, ShieldAlert, CircleAlert,
+  Eye, MessageSquare, MessageCircle, AlertTriangle, House, Flag,
+  ImageOff, Globe, Fingerprint, ShieldAlert, Fish, CircleAlert,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const CATEGORIES = [
-  { value: "phishing", label: "Phishing", icon: Fish },
-  { value: "malware", label: "Malware", icon: Bug },
-  { value: "ransomware", label: "Ransomware", icon: Lock },
-  { value: "data_breach", label: "Data Breach", icon: Database },
-  { value: "unauthorized_access", label: "Unauthorized Access", icon: KeyRound },
-  { value: "social_engineering", label: "Social Engineering", icon: Users },
-  { value: "ddos", label: "DDoS Attack", icon: Network },
-  { value: "account_compromise", label: "Account Compromise", icon: UserX },
-  { value: "insider_threat", label: "Insider Threat", icon: UserMinus },
+  { value: "stalking", label: "Stalking", icon: Eye },
+  { value: "harassment", label: "Harassment", icon: MessageSquare },
+  { value: "cyberbullying", label: "Cyberbullying", icon: MessageCircle },
+  { value: "threats", label: "Threats", icon: AlertTriangle },
+  { value: "domestic_abuse", label: "Domestic Abuse", icon: House },
+  { value: "hate_speech", label: "Hate Speech", icon: Flag },
+  { value: "image_based_abuse", label: "Image-Based Abuse", icon: ImageOff },
+  { value: "doxxing", label: "Doxxing", icon: Globe },
   { value: "identity_theft", label: "Identity Theft", icon: Fingerprint },
   { value: "online_fraud", label: "Online Fraud", icon: ShieldAlert },
+  { value: "phishing", label: "Phishing", icon: Fish },
   { value: "other", label: "Other", icon: CircleAlert },
 ];
 
