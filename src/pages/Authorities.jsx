@@ -31,6 +31,7 @@ export default function Authorities() {
   const [error, setError] = useState("");
   const [searched, setSearched] = useState(false);
   const [userPos, setUserPos] = useState(null);
+  const [nearby, setNearby] = useState(false);
 
   const runSearch = useCallback(async (q) => {
     const term = (q ?? query).trim();
@@ -40,6 +41,7 @@ export default function Authorities() {
     setError("");
     setSearched(true);
     setUserPos(null);
+    setNearby(false);
     try {
       const found = await searchAuthorities(term);
       setItems(found);
@@ -56,10 +58,11 @@ export default function Authorities() {
     setError("");
     setSearched(true);
     setQuery("");
+    setNearby(true);
     try {
       const pos = await getCurrentPosition();
       setUserPos(pos);
-      const found = await getNearbyAuthorities(pos.lat, pos.lon, { category, radiusMeters: 15000 });
+      const found = await getNearbyAuthorities(pos.lat, pos.lon, { category, radiusMeters: 10000 });
       setItems(found);
     } catch (e) {
       setError(e.message || "Could not find your location.");
@@ -159,7 +162,8 @@ export default function Authorities() {
           {loading && (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <Loader2 className="h-6 w-6 animate-spin" />
-              <p className="mt-2 text-sm">Searching…</p>
+              <p className="mt-2 text-sm">{nearby ? "Finding nearby help…" : "Searching…"}</p>
+              {nearby && <p className="mt-1 text-xs">This can take a few seconds.</p>}
             </div>
           )}
 

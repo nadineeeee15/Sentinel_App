@@ -52,7 +52,7 @@ function buildQuery(lat, lon, radiusMeters, category) {
 out center 30;`;
 }
 
-function fetchWithTimeout(url, opts, ms = 12000) {
+function fetchWithTimeout(url, opts, ms = 8000) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), ms);
   return fetch(url, { ...opts, signal: controller.signal }).finally(() =>
@@ -117,12 +117,17 @@ function kindFor(element) {
 export async function getNearbyAuthorities(lat, lon, { radiusMeters = 10000, category = "all" } = {}) {
   const query = buildQuery(lat, lon, radiusMeters, category);
   // Race all mirrors in parallel — first successful response wins, so a slow
-  // or rate-limited endpoint never blocks the result.
-  const attempts = OVERPASS_ENDPOINTS.map((ep) => attemptEndpoint(ep, query, lat, lon));
+  // or rate-limited endpoint never blocks the result. Retry once if all fail.
+  const race = () =>
+    Promise.any(OVERPASS_ENDPOINTS.map((ep) => attemptEndpoint(ep, query, lat, lon)));
   try {
-    return await Promise.any(attempts);
-  } catch (e) {
-    throw new Error("Could not reach the map service. Try again in a moment.");
+    return await race();
+  } catch {
+    try {
+      return await race();
+    } catch (e) {
+      throw new Error("The map service is busy right now. Try again in a moment, or search by name below.");
+    }
   }
 }
 
