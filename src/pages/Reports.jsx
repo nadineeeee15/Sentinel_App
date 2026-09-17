@@ -6,13 +6,17 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import IncidentCard from "@/components/incidents/IncidentCard";
+import { decryptIncident } from "@/lib/incidentCrypto";
 
 export default function Reports() {
   const [incidents, setIncidents] = useState(null);
 
   useEffect(() => {
     base44.entities.Incident.list("-incident_date", 200)
-      .then(setIncidents)
+      .then(async (data) => {
+        const decrypted = await Promise.all(data.map(decryptIncident));
+        setIncidents(decrypted);
+      })
       .catch(() => setIncidents([]));
   }, []);
 

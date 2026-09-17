@@ -16,6 +16,7 @@ import {
   getAttachments, addInMemoryAttachment, deleteAttachment, deleteAttachmentsForIncident,
 } from "@/lib/attachments";
 import { exportReportPDF } from "@/lib/pdfExport";
+import { decryptIncident } from "@/lib/incidentCrypto";
 
 const STATUSES = ["draft", "completed"];
 
@@ -34,7 +35,8 @@ export default function IncidentDetail() {
     setLoading(true);
     try {
       const data = await base44.entities.Incident.get(id);
-      setIncident(data);
+      const decrypted = data ? await decryptIncident(data) : data;
+      setIncident(decrypted);
       setNotFound(!data);
       try { setAttachments(await getAttachments(id)); } catch { setAttachments([]); }
     } catch (e) {

@@ -16,6 +16,7 @@ import AttachmentInput from "@/components/incidents/AttachmentInput";
 import { SeverityBadge } from "@/components/incidents/IncidentBadge";
 import { persistInMemoryAttachments } from "@/lib/attachments";
 import { exportReportPDF } from "@/lib/pdfExport";
+import { encryptIncident } from "@/lib/incidentCrypto";
 
 const STEPS = ["Category", "Details", "Attachments", "Report", "Review"];
 
@@ -76,18 +77,20 @@ export default function NewReport() {
     setSaving(true);
     setError("");
     try {
-      const created = await base44.entities.Incident.create({
-        title: title.trim(),
-        description: description.trim(),
-        category,
-        severity,
-        status: "completed",
-        location: location.trim(),
-        incident_date: new Date(incidentDate).toISOString(),
-        ai_report: report,
-        report_generated_date: generatedAt,
-        report_number: reportNumber,
-      });
+      const created = await base44.entities.Incident.create(
+        await encryptIncident({
+          title: title.trim(),
+          description: description.trim(),
+          category,
+          severity,
+          status: "completed",
+          location: location.trim(),
+          incident_date: new Date(incidentDate).toISOString(),
+          ai_report: report,
+          report_generated_date: generatedAt,
+          report_number: reportNumber,
+        })
+      );
       if (attachments.length) {
         try { await persistInMemoryAttachments(created.id, attachments); } catch {}
       }
@@ -101,18 +104,20 @@ export default function NewReport() {
   async function saveDraftAndLeave() {
     if (title.trim().length >= 3 && category) {
       try {
-        const created = await base44.entities.Incident.create({
-          title: title.trim(),
-          description: description.trim(),
-          category,
-          severity,
-          status: "draft",
-          location: location.trim(),
-          incident_date: new Date(incidentDate).toISOString(),
-          ...(report
-            ? { ai_report: report, report_generated_date: generatedAt, report_number: reportNumber }
-            : {}),
-        });
+        const created = await base44.entities.Incident.create(
+          await encryptIncident({
+            title: title.trim(),
+            description: description.trim(),
+            category,
+            severity,
+            status: "draft",
+            location: location.trim(),
+            incident_date: new Date(incidentDate).toISOString(),
+            ...(report
+              ? { ai_report: report, report_generated_date: generatedAt, report_number: reportNumber }
+              : {}),
+          })
+        );
         if (attachments.length) {
           try { await persistInMemoryAttachments(created.id, attachments); } catch {}
         }

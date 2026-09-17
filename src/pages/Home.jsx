@@ -11,6 +11,7 @@ import {
 import IncidentCard from "@/components/incidents/IncidentCard";
 import StatPills from "@/components/incidents/StatPills";
 import { useTheme } from "@/lib/ThemeContext";
+import { decryptIncident } from "@/lib/incidentCrypto";
 
 const STATUSES = ["all", "draft", "completed"];
 
@@ -39,7 +40,8 @@ export default function Home() {
         base44.entities.Incident.list("-incident_date", 200),
         base44.auth.me().catch(() => null),
       ]);
-      setIncidents(data);
+      const decrypted = await Promise.all(data.map(decryptIncident));
+      setIncidents(decrypted);
       setUser(me);
     } catch (e) {
       setIncidents([]);

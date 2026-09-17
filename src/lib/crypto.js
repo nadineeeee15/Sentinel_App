@@ -273,3 +273,38 @@ export async function decryptDataUrl(ivB64, ctB64) {
   );
   return new TextDecoder().decode(pt);
 }
+
+// --- incident text field encryption (same DEK + AES-GCM as attachments) ---
+// The encrypted value is a JSON string: { iv, ciphertext, encrypted, version }.
+// Stored in the Base44 DB string fields so only ciphertext leaves the device.
+export async function encryptText(plaintext) {
+  if (!hasSessionKey()) throw new Error("App is locked.");
+  const iv = randomBytes(12);
+  const ct = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv }, sessionKey, new TextEncoder().encode(plaintext)
+  );
+  return JSON.stringify({
+    iv: bufToB64(iv),
+    ciphertext: bufToB64(ct),
+    encrypted: true,
+    version: 1,
+  });
+}
+
+export async function decryptText(stored) {
+  if (!hasSessionKey()) throw new Error("App is locked.");
+  if (!stored || typeof stored !== "string") return stored;
+  let parsed;
+  try {
+    parsed = JSON.parse(stored);
+  } catch {
+    return stored; // legacy plaintext (pre-encryption) — pass through
+  }
+  if (!parsed || !parsed.encrypted || !parsed.iv || !parsed.ciphertext) {
+    return stored; // not an encrypted envelope — plain text
+  }
+  const pt = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: b64ToBytes(parsed.iv) }, sessionKey, b64ToBytes(parsed.ciphertext)
+  );
+  return new TextDecoder().decode(pt);
+}
