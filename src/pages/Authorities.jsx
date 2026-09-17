@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import AuthoritiesMap from "@/components/incidents/AuthoritiesMap";
 import EmergencyNumbers from "@/components/help/EmergencyNumbers";
-import { searchAuthorities } from "@/lib/authorities";
+import { searchAuthorities, getNearbyAuthorities, getCurrentPosition, formatDistance } from "@/lib/authorities";
 
 const KIND_LABEL = {
   police: "Police station",
@@ -17,7 +17,12 @@ const KIND_LABEL = {
   other: "Local authority",
 };
 
-const EXAMPLES = ["Police station", "Fire station", "Town hall", "Government office"];
+const NEARBY_OPTIONS = [
+  { value: "police", label: "Police station" },
+  { value: "fire", label: "Fire station" },
+  { value: "government", label: "Gov / Civic" },
+  { value: "all", label: "All nearby" },
+];
 
 export default function Authorities() {
   const [query, setQuery] = useState("");
@@ -25,6 +30,7 @@ export default function Authorities() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [searched, setSearched] = useState(false);
+  const [userPos, setUserPos] = useState(null);
 
   const runSearch = useCallback(async (q) => {
     const term = (q ?? query).trim();
@@ -33,6 +39,7 @@ export default function Authorities() {
     setLoading(true);
     setError("");
     setSearched(true);
+    setUserPos(null);
     try {
       const found = await searchAuthorities(term);
       setItems(found);
@@ -43,6 +50,24 @@ export default function Authorities() {
       setLoading(false);
     }
   }, [query]);
+
+  const runNearby = useCallback(async (category) => {
+    setLoading(true);
+    setError("");
+    setSearched(true);
+    setQuery("");
+    try {
+      const pos = await getCurrentPosition();
+      setUserPos(pos);
+      const found = await getNearbyAuthorities(pos.lat, pos.lon, { category, radiusMeters: 15000 });
+      setItems(found);
+    } catch (e) {
+      setError(e.message || "Could not find your location.");
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   function onSubmit(e) {
     e.preventDefault();
@@ -96,19 +121,37 @@ export default function Authorities() {
           </form>
 
           {!searched && !loading && (
-            <div className="mt-3">
-              <p className="text-xs text-muted-foreground">Try a common search:</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {EXAMPLES.map((ex) => (
-                  <button
-                    key={ex}
-                    type="button"
-                    onClick={() => runSearch(ex)}
-                    className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover:border-primary"
-                  >
-                    {ex}
-                  </button>
-                ))}
+            <div className="mt-3 space-y-3">
+              <div>
+                <p className="text-xs font-medium text-foreground">Find help near you (uses your location):</p>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  {NEARBY_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => runNearby(opt.value)}
+                      className="flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2.5 text-sm font-medium text-primary transition hover:bg-primary/10"
+                    >
+                      <MapPin className="h-4 w-4" />
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Or search by name:</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {["Police station", "Fire station", "Town hall"].map((ex) => (
+                    <button
+                      key={ex}
+                      type="button"
+                      onClick={() => runSearch(ex)}
+                      className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover:border-primary"
+                    >
+                      {ex}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -132,9 +175,9 @@ export default function Authorities() {
           {searched && !loading && !error && (
             <>
               <p className="mt-3 text-xs text-muted-foreground">
-                {items.length} result{items.length === 1 ? "" : "s"} found.
+                {items.length} result{items.length === 1 ? "" : "s"} found{userPos ? " near you" : ""}.
               </p>
-              {items.length > 0 && <AuthoritiesMap key={mapKey} userPos={null} items={items} />}
+              {items.length > 0 && <AuthoritiesMap key={mapKey} userPos={userPos} items={items} />}
               {items.length === 0 ? (
                 <div className="mt-4 text-center text-sm text-muted-foreground">
                   No matching places found. Try a different search.
@@ -144,7 +187,10 @@ export default function Authorities() {
                   {items.map((it) => (
                     <div key={it.id} className="rounded-2xl border border-border bg-card p-3.5">
                       <p className="truncate text-sm font-semibold text-foreground">{it.name}</p>
-                      <p className="text-xs capitalize text-muted-foreground">{KIND_LABEL[it.kind] || it.kind}</p>
+                      <p className="text-xs capitalize text-muted-foreground">
+                        {KIND_LABEL[it.kind] || it.kind}
+                        {it.distance != null && ` · ${formatDistance(it.distance)} away`}
+                      </p>
                       {it.fullName && (
                         <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground">{it.fullName}</p>
                       )}
