@@ -12,6 +12,7 @@ import IncidentCard from "@/components/incidents/IncidentCard";
 import StatPills from "@/components/incidents/StatPills";
 import { useTheme } from "@/lib/ThemeContext";
 import { decryptIncident } from "@/lib/incidentCrypto";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
 const STATUSES = ["all", "draft", "completed"];
 
@@ -35,6 +36,7 @@ export default function Home() {
   const [status, setStatus] = useState("all");
 
   async function load() {
+    setIncidents(null);
     try {
       const [data, me] = await Promise.all([
         base44.entities.Incident.list("-incident_date", 200),
@@ -58,6 +60,8 @@ export default function Home() {
 
   useEffect(() => { load(); }, []);
 
+  const { pull, refreshing } = usePullToRefresh(load);
+
   const filtered = useMemo(() => {
     if (!incidents) return [];
     const q = query.trim().toLowerCase();
@@ -78,6 +82,13 @@ export default function Home() {
 
   return (
     <div className={`mx-auto min-h-dvh max-w-md ${dark ? "bg-gradient-to-b from-[#0d0518] via-[#120724] to-[#08030f] text-white" : "bg-background text-foreground"}`}>
+      {(pull > 0 || refreshing) && (
+        <div className="pointer-events-none fixed left-1/2 top-0 z-50 -translate-x-1/2" style={{ paddingTop: "env(safe-area-inset-top)" }}>
+          <div className="flex items-center justify-center" style={{ height: Math.max(pull, refreshing ? 40 : 0) }}>
+            <Loader2 className={"h-5 w-5 text-primary " + (refreshing ? "animate-spin" : "")} />
+          </div>
+        </div>
+      )}
       {/* Greeting header */}
       <header className="px-5 pb-3 pt-6">
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-500 via-violet-600 to-fuchsia-700 p-5 text-white shadow-2xl shadow-fuchsia-900/30">

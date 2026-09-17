@@ -13,9 +13,10 @@ import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import Home from '@/pages/Home';
-import NewReport from '@/pages/NewReport';
-import IncidentDetail from '@/pages/IncidentDetail';
-import Authorities from '@/pages/Authorities';
+import { lazy, Suspense } from 'react';
+const NewReport = lazy(() => import('@/pages/NewReport'));
+const IncidentDetail = lazy(() => import('@/pages/IncidentDetail'));
+const Authorities = lazy(() => import('@/pages/Authorities'));
 import AppLock from '@/components/AppLock';
 import AppLayout from '@/components/AppLayout';
 import Profile from '@/pages/Profile';
@@ -42,6 +43,7 @@ const AuthenticatedApp = () => {
   }
 
   return (
+    <Suspense fallback={<div className="fixed inset-0 flex items-center justify-center"><div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div></div>}>
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -61,6 +63,7 @@ const AuthenticatedApp = () => {
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
+    </Suspense>
   );
 };
 

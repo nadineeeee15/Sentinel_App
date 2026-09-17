@@ -7,34 +7,44 @@ import {
 import { Button } from "@/components/ui/button";
 import IncidentCard from "@/components/incidents/IncidentCard";
 import { decryptIncident } from "@/lib/incidentCrypto";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
 export default function Reports() {
   const [incidents, setIncidents] = useState(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    base44.entities.Incident.list("-incident_date", 200)
-      .then(async (data) => {
-        if (cancelled) return;
-        if (!data.length) {
-          setIncidents([]);
-          return;
-        }
-        for (const item of data) {
-          const dec = await decryptIncident(item);
-          if (cancelled) return;
-          setIncidents((prev) => (prev === null ? [dec] : [...prev, dec]));
-        }
-      })
-      .catch(() => { if (!cancelled) setIncidents([]); });
-    return () => { cancelled = true; };
-  }, []);
+  async function load() {
+    setIncidents(null);
+    try {
+      const data = await base44.entities.Incident.list("-incident_date", 200);
+      if (!data.length) {
+        setIncidents([]);
+        return;
+      }
+      for (const item of data) {
+        const dec = await decryptIncident(item);
+        setIncidents((prev) => (prev === null ? [dec] : [...prev, dec]));
+      }
+    } catch {
+      setIncidents([]);
+    }
+  }
+
+  useEffect(() => { load(); }, []);
+
+  const { pull, refreshing } = usePullToRefresh(load);
 
   const drafts = (incidents || []).filter((i) => i.status === "draft");
   const completed = (incidents || []).filter((i) => i.status === "completed");
 
   return (
     <div className="mx-auto min-h-dvh max-w-md bg-background pb-20 text-foreground">
+      {(pull > 0 || refreshing) && (
+        <div className="pointer-events-none fixed left-1/2 top-0 z-50 -translate-x-1/2" style={{ paddingTop: "env(safe-area-inset-top)" }}>
+          <div className="flex items-center justify-center" style={{ height: Math.max(pull, refreshing ? 40 : 0) }}>
+            <Loader2 className={"h-5 w-5 text-primary " + (refreshing ? "animate-spin" : "")} />
+          </div>
+        </div>
+      )}
       <header className="px-5 pb-2 pt-6">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Your reports</h1>
         <p className="mt-1 text-sm text-muted-foreground">
