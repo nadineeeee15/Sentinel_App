@@ -40,9 +40,17 @@ export default function Home() {
         base44.entities.Incident.list("-incident_date", 200),
         base44.auth.me().catch(() => null),
       ]);
-      const decrypted = await Promise.all(data.map(decryptIncident));
-      setIncidents(decrypted);
       setUser(me);
+      if (!data.length) {
+        setIncidents([]);
+        return;
+      }
+      // Decrypt incrementally so the list fills in as each record unlocks,
+      // instead of blocking on Promise.all over every record at once.
+      for (const item of data) {
+        const dec = await decryptIncident(item);
+        setIncidents((prev) => (prev === null ? [dec] : [...prev, dec]));
+      }
     } catch (e) {
       setIncidents([]);
     }

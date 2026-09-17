@@ -134,14 +134,14 @@ export default function NewReport() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-md bg-background text-foreground">
-      <header className="sticky top-0 z-20 bg-card/85 px-4 py-3 backdrop-blur-md">
+      <header className="sticky top-0 z-20 bg-card/85 px-4 pb-3 backdrop-blur-md" style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}>
         <div className="flex items-center gap-2">
-          <button onClick={saveDraftAndLeave} className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-accent">
+          <button onClick={saveDraftAndLeave} className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-accent select-none">
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
             <h1 className="text-base font-semibold text-foreground">New Incident Report</h1>
-            <p className="text-xs text-muted-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</p>
+            <p className="text-sm text-muted-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</p>
           </div>
         </div>
         <div className="mt-3 flex gap-1">
@@ -214,7 +214,7 @@ export default function NewReport() {
                 placeholder="Describe what happened in your own words — what was said or done, when and how often, who was involved, and how it affected you…"
                 rows={6}
               />
-              <p className="text-xs text-muted-foreground">{description.trim().length} characters · min 10</p>
+              <p className="text-sm text-muted-foreground">{description.trim().length} characters · min 10</p>
             </div>
           </div>
         )}
@@ -229,7 +229,7 @@ export default function NewReport() {
               onAdd={(a) => setAttachments((prev) => [...prev, a])}
               onRemove={(i) => setAttachments((prev) => prev.filter((_, idx) => idx !== i))}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               You can skip this and add attachments later from the report page.
             </p>
           </div>
@@ -237,7 +237,7 @@ export default function NewReport() {
 
         {step === 3 && (
           <div className="space-y-4">
-            <div className="flex items-start gap-2 rounded-xl bg-primary/10 p-3 text-xs text-primary">
+            <div className="flex items-start gap-2 rounded-xl bg-primary/10 p-3 text-sm text-primary">
               <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
               <p>
                 Only your text description is sent to the AI to draft a formal report. No images
@@ -250,7 +250,7 @@ export default function NewReport() {
                   <Sparkles className="h-7 w-7 text-muted-foreground" />
                 </div>
                 <p className="text-sm font-medium text-card-foreground">Generate your professional report</p>
-                <p className="max-w-xs text-xs text-muted-foreground">
+                <p className="max-w-xs text-sm text-muted-foreground">
                   The AI will turn your description into a formal report you can submit to a local
                   authority.
                 </p>
@@ -266,7 +266,7 @@ export default function NewReport() {
                   <Check className="h-4 w-4" /> Report generated
                 </div>
                 <div className="max-h-[55vh] overflow-y-auto rounded-2xl border border-border bg-card p-4">
-                  <pre className="whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-card-foreground">
+                  <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-card-foreground">
                     {report}
                   </pre>
                 </div>
@@ -284,21 +284,21 @@ export default function NewReport() {
             <div className="rounded-2xl border border-border bg-card p-4">
               <div className="flex flex-wrap items-center gap-2">
                 <SeverityBadge severity={severity} />
-                <span className="text-xs text-muted-foreground">{CATEGORY_LABELS[category]}</span>
+                <span className="text-sm text-muted-foreground">{CATEGORY_LABELS[category]}</span>
               </div>
               <h2 className="mt-2 text-base font-semibold text-foreground">{title}</h2>
-              {location && <p className="mt-1 text-xs text-muted-foreground">{location}</p>}
+              {location && <p className="mt-1 text-sm text-muted-foreground">{location}</p>}
             </div>
 
             <div className="rounded-2xl border border-border bg-card p-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">AI Report</h3>
-              <pre className="mt-2 max-h-40 overflow-hidden whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-card-foreground">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">AI Report</h3>
+              <pre className="mt-2 max-h-40 overflow-hidden whitespace-pre-wrap font-sans text-sm leading-relaxed text-card-foreground">
                 {report}
               </pre>
             </div>
 
             <div className="rounded-2xl border border-border bg-card p-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Attachments ({attachments.length})
               </h3>
               {attachments.length > 0 ? (
@@ -310,11 +310,11 @@ export default function NewReport() {
                   ))}
                 </div>
               ) : (
-                <p className="mt-2 text-xs text-muted-foreground">No attachments added.</p>
+                <p className="mt-2 text-sm text-muted-foreground">No attachments added.</p>
               )}
             </div>
 
-            <div className="flex items-start gap-2 rounded-xl bg-emerald-500/10 p-3 text-xs text-emerald-700 dark:text-emerald-300">
+            <div className="flex items-start gap-2 rounded-xl bg-emerald-500/10 p-3 text-sm text-emerald-700 dark:text-emerald-300">
               <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500 dark:text-emerald-400" />
               <p>Attachments will be saved only on this device after you save the report.</p>
             </div>
@@ -333,7 +333,7 @@ export default function NewReport() {
       </main>
 
       {/* Footer nav */}
-      <div className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md border-t border-border bg-card/95 px-5 py-3 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md border-t border-border bg-card/95 px-5 pt-3 backdrop-blur" style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
         <div className="flex gap-3">
           {step > 0 && (
             <Button variant="outline" className="flex-1 rounded-full" onClick={() => setStep((s) => s - 1)}>

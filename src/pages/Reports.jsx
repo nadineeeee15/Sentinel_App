@@ -12,12 +12,22 @@ export default function Reports() {
   const [incidents, setIncidents] = useState(null);
 
   useEffect(() => {
+    let cancelled = false;
     base44.entities.Incident.list("-incident_date", 200)
       .then(async (data) => {
-        const decrypted = await Promise.all(data.map(decryptIncident));
-        setIncidents(decrypted);
+        if (cancelled) return;
+        if (!data.length) {
+          setIncidents([]);
+          return;
+        }
+        for (const item of data) {
+          const dec = await decryptIncident(item);
+          if (cancelled) return;
+          setIncidents((prev) => (prev === null ? [dec] : [...prev, dec]));
+        }
       })
-      .catch(() => setIncidents([]));
+      .catch(() => { if (!cancelled) setIncidents([]); });
+    return () => { cancelled = true; };
   }, []);
 
   const drafts = (incidents || []).filter((i) => i.status === "draft");
@@ -43,7 +53,7 @@ export default function Reports() {
               <FileText className="h-8 w-8 text-primary" />
             </div>
             <p className="mt-3 text-sm font-medium text-foreground">No reports yet</p>
-            <p className="mt-1 max-w-xs text-xs text-muted-foreground">
+            <p className="mt-1 max-w-xs text-sm text-muted-foreground">
               When you log an incident, it will appear here under Drafts or Completed.
             </p>
             <Button asChild className="mt-4 rounded-full">
@@ -56,12 +66,12 @@ export default function Reports() {
               <div className="mb-2 flex items-center gap-2">
                 <FolderOpen className="h-4 w-4 text-muted-foreground" />
                 <h2 className="text-sm font-semibold text-foreground">Drafts</h2>
-                <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                <span className="rounded-full bg-muted px-2 py-0.5 text-sm font-medium text-muted-foreground">
                   {drafts.length}
                 </span>
               </div>
               {drafts.length === 0 ? (
-                <p className="rounded-2xl border border-border bg-card p-4 text-xs text-muted-foreground">
+                <p className="rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">
                   No draft reports.
                 </p>
               ) : (
@@ -77,12 +87,12 @@ export default function Reports() {
               <div className="mb-2 flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
                 <h2 className="text-sm font-semibold text-foreground">Completed</h2>
-                <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                <span className="rounded-full bg-muted px-2 py-0.5 text-sm font-medium text-muted-foreground">
                   {completed.length}
                 </span>
               </div>
               {completed.length === 0 ? (
-                <p className="rounded-2xl border border-border bg-card p-4 text-xs text-muted-foreground">
+                <p className="rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">
                   No completed reports.
                 </p>
               ) : (
@@ -94,7 +104,7 @@ export default function Reports() {
               )}
             </section>
 
-            <div className="flex items-start gap-2 rounded-2xl border border-border bg-card p-3 text-xs text-muted-foreground">
+            <div className="flex items-start gap-2 rounded-2xl border border-border bg-card p-3 text-sm text-muted-foreground">
               <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <p>Only you can see your reports. Attachments stay on this device.</p>
             </div>

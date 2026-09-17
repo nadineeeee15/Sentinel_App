@@ -50,11 +50,17 @@ export default function IncidentDetail() {
 
   async function changeStatus(next) {
     if (!incident || next === incident.status) return;
+    const prev = incident.status;
+    setIncident((cur) => (cur ? { ...cur, status: next } : cur));
     setUpdating(true);
     try {
       const updated = await base44.entities.Incident.update(incident.id, { status: next });
-      setIncident(updated ? await decryptIncident(updated) : updated);
-    } catch (e) {} finally { setUpdating(false); }
+      if (updated) setIncident(await decryptIncident(updated));
+    } catch (e) {
+      setIncident((cur) => (cur ? { ...cur, status: prev } : cur));
+    } finally {
+      setUpdating(false);
+    }
   }
 
   async function handleAdd(att) {
@@ -111,8 +117,8 @@ export default function IncidentDetail() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-md bg-background text-foreground">
-      <header className="sticky top-0 z-20 flex items-center justify-between bg-card/85 px-4 py-3 backdrop-blur-md">
-        <Link to="/" className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-accent">
+      <header className="sticky top-0 z-20 flex items-center justify-between bg-card/85 px-4 pb-3 backdrop-blur-md" style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}>
+        <Link to="/" className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-accent select-none">
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex gap-2">
@@ -134,11 +140,11 @@ export default function IncidentDetail() {
         <div className="flex flex-wrap items-center gap-2">
           <SeverityBadge severity={incident.severity} />
           <StatusBadge status={incident.status} />
-          <span className="text-xs text-muted-foreground">{CATEGORY_LABELS[incident.category] || incident.category}</span>
+          <span className="text-sm text-muted-foreground">{CATEGORY_LABELS[incident.category] || incident.category}</span>
         </div>
 
         {incident._locked && (
-          <div className="mt-3 flex items-start gap-2 rounded-2xl border border-amber-300/60 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+          <div className="mt-3 flex items-start gap-2 rounded-2xl border border-amber-300/60 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
             <Lock className="mt-0.5 h-4 w-4 shrink-0" />
             <p>This report is locked — it was encrypted with a previous PIN and can't be recovered. Reset your PIN to start fresh.</p>
           </div>
@@ -170,7 +176,7 @@ export default function IncidentDetail() {
         <div className="mt-4 rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-muted-foreground" />
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               Professional Report
             </h2>
           </div>
@@ -179,7 +185,7 @@ export default function IncidentDetail() {
               This report's content is locked — it was encrypted with a previous PIN and can't be recovered.
             </p>
           ) : incident.ai_report ? (
-            <pre className="mt-2 max-h-72 overflow-y-auto whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-card-foreground">
+            <pre className="mt-2 max-h-72 overflow-y-auto whitespace-pre-wrap font-sans text-sm leading-relaxed text-card-foreground">
               {incident.ai_report}
             </pre>
           ) : (
@@ -189,7 +195,7 @@ export default function IncidentDetail() {
 
         {/* Attachments (local only) */}
         <div className="mt-4 rounded-2xl border border-border bg-card p-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Attachments</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Attachments</h2>
           <div className="mt-3">
             <AttachmentInput
               attachments={attachments}
@@ -197,7 +203,7 @@ export default function IncidentDetail() {
               onRemove={handleRemove}
             />
           </div>
-          <div className="mt-2 flex items-start gap-2 text-xs text-muted-foreground">
+          <div className="mt-2 flex items-start gap-2 text-sm text-muted-foreground">
             <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500 dark:text-emerald-400" />
             <p>Stored only on this device. They are included when you export the PDF.</p>
           </div>
@@ -205,7 +211,7 @@ export default function IncidentDetail() {
 
         {/* Status */}
         <div className="mt-4 rounded-2xl border border-border bg-card p-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Status</h2>
           <Select value={incident.status} onValueChange={changeStatus} disabled={updating}>
             <SelectTrigger className="mt-2 capitalize">
               {updating ? <Loader2 className="h-4 w-4 animate-spin" /> : <SelectValue />}
@@ -229,7 +235,7 @@ export default function IncidentDetail() {
             </div>
             <div>
               <p className="text-sm font-medium text-foreground">Find nearby authorities</p>
-              <p className="text-xs text-muted-foreground">Police stations & government offices near you</p>
+              <p className="text-sm text-muted-foreground">Police stations & government offices near you</p>
             </div>
           </div>
           <ArrowLeft className="h-4 w-4 rotate-180 text-muted-foreground/50" />

@@ -5,7 +5,9 @@ import BottomNav from "@/components/BottomNav";
 export default function AppLayout() {
   return (
     <>
-      <Outlet />
+      <div style={{ paddingTop: "env(safe-area-inset-top)" }}>
+        <Outlet />
+      </div>
       <BottomNav />
     </>
   );
