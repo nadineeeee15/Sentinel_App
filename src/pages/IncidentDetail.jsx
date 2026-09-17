@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import {
-  ArrowLeft, MapPin, CalendarDays, Trash2, Loader2, Download, FileText, ShieldCheck, Hash,
+  ArrowLeft, MapPin, CalendarDays, Trash2, Loader2, Download, FileText, ShieldCheck, Hash, Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -53,7 +53,7 @@ export default function IncidentDetail() {
     setUpdating(true);
     try {
       const updated = await base44.entities.Incident.update(incident.id, { status: next });
-      setIncident(updated);
+      setIncident(updated ? await decryptIncident(updated) : updated);
     } catch (e) {} finally { setUpdating(false); }
   }
 
@@ -137,7 +137,15 @@ export default function IncidentDetail() {
           <span className="text-xs text-muted-foreground">{CATEGORY_LABELS[incident.category] || incident.category}</span>
         </div>
 
-        <h1 className="mt-3 text-xl font-semibold leading-snug text-foreground">{incident.title}</h1>
+        {incident._locked && (
+          <div className="mt-3 flex items-start gap-2 rounded-2xl border border-amber-300/60 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+            <Lock className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>This report is locked — it was encrypted with a previous PIN and can't be recovered. Reset your PIN to start fresh.</p>
+          </div>
+        )}
+        <h1 className="mt-3 text-xl font-semibold leading-snug text-foreground">
+          {incident._locked ? "Locked report" : incident.title}
+        </h1>
 
         <div className="mt-4 space-y-2 rounded-2xl border border-border bg-card p-4">
           {incident.report_number && (
@@ -147,7 +155,7 @@ export default function IncidentDetail() {
               <span className="font-medium text-foreground">{incident.report_number}</span>
             </div>
           )}
-          {incident.location && (
+          {!incident._locked && incident.location && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <MapPin className="h-4 w-4 text-muted-foreground" /> {incident.location}
             </div>
@@ -166,7 +174,11 @@ export default function IncidentDetail() {
               Professional Report
             </h2>
           </div>
-          {incident.ai_report ? (
+          {incident._locked ? (
+            <p className="mt-2 text-sm text-muted-foreground">
+              This report's content is locked — it was encrypted with a previous PIN and can't be recovered.
+            </p>
+          ) : incident.ai_report ? (
             <pre className="mt-2 max-h-72 overflow-y-auto whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-card-foreground">
               {incident.ai_report}
             </pre>

@@ -22,6 +22,7 @@ export async function encryptIncident(plain) {
 export async function decryptIncident(stored) {
   if (!stored) return stored;
   const dec = {};
+  let locked = false;
   for (const f of FIELDS) {
     const v = stored[f];
     if (v != null && v !== "") {
@@ -29,10 +30,11 @@ export async function decryptIncident(stored) {
         dec[f] = await decryptText(v);
       } catch {
         dec[f] = v;
+        locked = true;
       }
     } else {
       dec[f] = v;
     }
   }
-  return { ...stored, ...dec };
+  return { ...stored, ...dec, _locked: locked };
 }

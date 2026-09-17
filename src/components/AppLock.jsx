@@ -11,7 +11,7 @@ import {
 } from "@/lib/biometric";
 import {
   setupNewPinEncryption, unlockWithPin, hasWrappedDek, unlockWithBiometric,
-  enableBiometricEncryption, generateSessionDek, clearWrappedDek,
+  enableBiometricEncryption, generateSessionDek, clearWrappedDek, hasSessionKey,
 } from "@/lib/crypto";
 import { migrateLegacyAttachments } from "@/lib/attachments";
 import { useAutoLock } from "@/hooks/useAutoLock";
@@ -152,7 +152,13 @@ export default function AppLock() {
             await migrateLegacyAttachments().catch(() => {});
           } catch {}
           setUnlocking(false);
-          setUnlocked(true);
+          if (hasSessionKey()) {
+            setUnlocked(true);
+          } else {
+            setError("Couldn't unlock saved data. Reset your PIN to start fresh.");
+            setShake(true);
+            setTimeout(() => { setShake(false); setPin(""); setError(""); }, 900);
+          }
         } else {
           setError("Incorrect PIN.");
           setShake(true);
@@ -196,9 +202,13 @@ export default function AppLock() {
     try {
       const ok = await biometricUnlock();
       if (ok) {
-        await unlockWithBiometric().catch(() => {});
-        await migrateLegacyAttachments().catch(() => {});
-        setUnlocked(true);
+        const dekOk = await unlockWithBiometric().catch(() => false);
+        if (dekOk) {
+          await migrateLegacyAttachments().catch(() => {});
+          setUnlocked(true);
+        } else {
+          setError("Biometric unlock failed. Enter your PIN.");
+        }
       } else setError("Biometric unlock failed. Enter your PIN.");
     } catch {
       setError("Biometric unlock failed. Enter your PIN.");
