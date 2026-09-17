@@ -322,7 +322,7 @@ export default function AppLock() {
             transition={{ delay: 0.45, duration: 0.5 }}
             className="mt-6 text-2xl font-semibold tracking-tight text-slate-900"
           >
-            Welcome to Sentinel
+            Hi{name.trim() ? ` ${name.trim()}` : ""}!
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 12 }}
@@ -330,7 +330,7 @@ export default function AppLock() {
             transition={{ delay: 0.6, duration: 0.5 }}
             className="mt-2 max-w-xs text-sm text-slate-500"
           >
-            Your private guardian — here to safeguard and help you when it matters most.
+            This is Sentinel, your safe space for everything. You got this.
           </motion.p>
         </div>
         <motion.div
