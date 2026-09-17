@@ -104,7 +104,13 @@ export default function AppLock() {
 
   // Auto-lock: wipe the DEK and return to the PIN screen after 3 minutes of
   // inactivity, or immediately when the tab is backgrounded/hidden.
-  useAutoLock(unlocked, () => setUnlocked(false));
+  useAutoLock(unlocked, () => {
+    setUnlocked(false);
+    setPin("");
+    setConfirmPin("");
+    setSetStep("enter");
+    setError("");
+  });
 
   function fail(msg) {
     setError(msg);
