@@ -114,21 +114,72 @@ function kindFor(element) {
   return "other";
 }
 
+const CATEGORY_SEARCH_TERMS = {
+  police: "police station",
+  fire: "fire station",
+  government: "government office",
+  civic: "town hall",
+  all: "police station",
+};
+
+async function reverseGeocode(lat, lon) {
+  const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=14&addressdetails=1`;
+  const res = await fetchWithTimeout(url, { headers: { Accept: "application/json" } }, 10000);
+  if (!res.ok) throw new Error("reverse geocode failed");
+  const json = await res.json();
+  const addr = json.address || {};
+  return (
+    addr.city || addr.town || addr.village || addr.suburb || addr.county || addr.state || ""
+  );
+}
+
 export async function getNearbyAuthorities(lat, lon, { radiusMeters = 10000, category = "all" } = {}) {
-  const query = buildQuery(lat, lon, radiusMeters, category);
-  // Race all mirrors in parallel — first successful response wins, so a slow
-  // or rate-limited endpoint never blocks the result. Retry once if all fail.
-  const race = () =>
-    Promise.any(OVERPASS_ENDPOINTS.map((ep) => attemptEndpoint(ep, query, lat, lon)));
+  // Use Nominatim (more reliable than Overpass): reverse-geocode the user's
+  // position to a place name, then search for the category there. Results are
+  // sorted by distance from the user's GPS.
+  const term = CATEGORY_SEARCH_TERMS[category] || CATEGORY_SEARCH_TERMS.all;
+  let place;
   try {
-    return await race();
+    place = await reverseGeocode(lat, lon);
   } catch {
-    try {
-      return await race();
-    } catch (e) {
-      throw new Error("The map service is busy right now. Try again in a moment, or search by name below.");
-    }
+    place = "";
   }
+  const q = place ? `${term}, ${place}` : term;
+  const url =
+    "https://nominatim.openstreetmap.org/search?q=" +
+    encodeURIComponent(q) +
+    "&format=json&extratags=1&addressdetails=1&limit=25";
+  let json;
+  const attempt = async () => {
+    const res = await fetchWithTimeout(url, { headers: { Accept: "application/json" } }, 12000);
+    if (!res.ok) throw new Error("Could not reach the map service.");
+    return res.json();
+  };
+  try {
+    json = await attempt();
+  } catch {
+    json = await attempt();
+  }
+  const items = (json || []).map((r) => {
+    const tags = r.extratags || {};
+    const rLat = parseFloat(r.lat);
+    const rLon = parseFloat(r.lon);
+    return {
+      id: `${r.osm_type}/${r.osm_id}`,
+      name: (r.display_name || "Result").split(",")[0],
+      fullName: r.display_name || "",
+      kind: kindFromType(r.class, r.type),
+      lat: rLat,
+      lon: rLon,
+      distance: haversineMeters(lat, lon, rLat, rLon),
+      phone: tags.phone || tags["contact:phone"] || null,
+      website: tags.website || tags["contact:website"] || null,
+    };
+  });
+  return items
+    .filter((i) => i.distance <= radiusMeters)
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, 25);
 }
 
 function kindFromType(cls, type) {
