@@ -3,16 +3,26 @@ import { Camera, ImagePlus, X, Loader2, ShieldCheck, Lock } from "lucide-react";
 import { readAttachmentObject } from "@/lib/attachments";
 import { hasSessionKey } from "@/lib/crypto";
 
+const MAX_ATTACHMENTS = 10;
+
 export default function AttachmentInput({ attachments, onAdd, onRemove }) {
   const camRef = useRef(null);
   const libRef = useRef(null);
   const [reading, setReading] = useState(false);
+  const [notice, setNotice] = useState("");
+  const atCap = attachments.length >= MAX_ATTACHMENTS;
 
   async function handleFiles(files) {
     if (!files || !files.length) return;
     setReading(true);
+    setNotice("");
     try {
-      for (const file of Array.from(files)) {
+      const remaining = MAX_ATTACHMENTS - attachments.length;
+      const picked = Array.from(files).slice(0, remaining);
+      if (files.length > remaining) {
+        setNotice(`Only ${remaining > 0 ? remaining : 0} more can be added (limit ${MAX_ATTACHMENTS} per report).`);
+      }
+      for (const file of picked) {
         const obj = await readAttachmentObject(file);
         onAdd?.(obj);
       }
@@ -64,11 +74,19 @@ export default function AttachmentInput({ attachments, onAdd, onRemove }) {
         </div>
       )}
 
+      {notice && (
+        <p className="text-xs text-amber-600 dark:text-amber-400">{notice}</p>
+      )}
+
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>{attachments.length}/{MAX_ATTACHMENTS} photos</span>
+      </div>
+
       <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
           onClick={() => camRef.current?.click()}
-          disabled={reading}
+          disabled={reading || atCap}
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card px-3 py-4 text-sm text-muted-foreground transition hover:bg-accent disabled:opacity-50"
         >
           {reading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
@@ -85,7 +103,7 @@ export default function AttachmentInput({ attachments, onAdd, onRemove }) {
         <button
           type="button"
           onClick={() => libRef.current?.click()}
-          disabled={reading}
+          disabled={reading || atCap}
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card px-3 py-4 text-sm text-muted-foreground transition hover:bg-accent disabled:opacity-50"
         >
           {reading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}

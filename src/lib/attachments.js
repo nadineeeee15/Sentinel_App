@@ -41,6 +41,37 @@ function fileToDataUrl(file) {
   });
 }
 
+// Downscale an image file to a max dimension (default 1280px) and re-encode as
+// JPEG to keep IndexedDB usage small. Returns a data URL.
+const MAX_IMAGE_DIMENSION = 1280;
+const JPEG_QUALITY = 0.82;
+
+function downscaleDataUrl(dataUrl) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const { width, height } = img;
+      if (width <= MAX_IMAGE_DIMENSION && height <= MAX_IMAGE_DIMENSION) {
+        resolve(dataUrl);
+        return;
+      }
+      const scale = MAX_IMAGE_DIMENSION / Math.max(width, height);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(width * scale);
+      canvas.height = Math.round(height * scale);
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      try {
+        resolve(canvas.toDataURL("image/jpeg", JPEG_QUALITY));
+      } catch {
+        resolve(dataUrl);
+      }
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
 function canEncrypt() {
   return cryptoAvailable() && hasSessionKey();
 }
@@ -148,8 +179,10 @@ export async function persistInMemoryAttachments(incidentId, attachments) {
 }
 
 // Helper for the wizard: read a File into an in-memory attachment object.
+// Large images are auto-downscaled to keep local storage small.
 export async function readAttachmentObject(file) {
-  const dataUrl = await fileToDataUrl(file);
+  const rawUrl = await fileToDataUrl(file);
+  const dataUrl = file.type?.startsWith("image/") ? await downscaleDataUrl(rawUrl) : rawUrl;
   return {
     name: file.name || "attachment",
     type: file.type || "image/*",
