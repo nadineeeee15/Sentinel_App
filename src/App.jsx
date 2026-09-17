@@ -19,6 +19,7 @@ const IncidentDetail = lazy(() => import('@/pages/IncidentDetail'));
 const Authorities = lazy(() => import('@/pages/Authorities'));
 import AppLock from '@/components/AppLock';
 import AppLayout from '@/components/AppLayout';
+import RouteTransitions from '@/components/RouteTransitions';
 import Profile from '@/pages/Profile';
 import Reports from '@/pages/Reports';
 
@@ -51,14 +52,16 @@ const AuthenticatedApp = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route element={<AppLock />}>
-          <Route element={<AppLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/authorities" element={<Authorities />} />
-            <Route path="/profile" element={<Profile />} />
+          <Route element={<RouteTransitions />}>
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/authorities" element={<Authorities />} />
+              <Route path="/profile" element={<Profile />} />
+            </Route>
+            <Route path="/new" element={<NewReport />} />
+            <Route path="/incidents/:id" element={<IncidentDetail />} />
           </Route>
-          <Route path="/new" element={<NewReport />} />
-          <Route path="/incidents/:id" element={<IncidentDetail />} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />
