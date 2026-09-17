@@ -91,6 +91,7 @@ export default function AppLock() {
   const [bioOn, setBioOn] = useState(false);
   const [busy, setBusy] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
+  const [bioPrompt, setBioPrompt] = useState(false);
 
   useEffect(() => {
     const storedName = getStoredName();
@@ -137,7 +138,11 @@ export default function AppLock() {
             setUnlocking(true);
             try { await setupNewPinEncryption(next); } catch {}
             setUnlocking(false);
-            setUnlocked(true);
+            if (bioSupported && !biometricEnabled()) {
+              setBioPrompt(true);
+            } else {
+              setUnlocked(true);
+            }
           } else {
             fail("PINs don't match. Try again.");
           }
@@ -223,6 +228,28 @@ export default function AppLock() {
     }
   }
 
+  // One-time prompt after first PIN setup: offer biometric as a recovery backup
+  // so a forgotten PIN doesn't permanently lock the user out of their reports.
+  async function enableBioBackup() {
+    setBusy(true); setError("");
+    try {
+      await enableBiometric();
+      await enableBiometricEncryption();
+      setBioOn(true);
+      setBioPrompt(false);
+      setUnlocked(true);
+    } catch {
+      setError("Biometric setup was cancelled or failed. You can enable it later in Profile.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function skipBioPrompt() {
+    setBioPrompt(false);
+    setUnlocked(true);
+  }
+
   function resetPin() {
     if (!confirm("Reset your PIN? Any locally stored attachments will be permanently lost, but your text reports remain on your account. Continue?")) return;
     try { localStorage.removeItem(PIN_KEY); } catch {}
@@ -237,6 +264,36 @@ export default function AppLock() {
     return (
       <div className="flex min-h-dvh items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-violet-500" />
+      </div>
+    );
+  }
+
+  if (bioPrompt) {
+    return (
+      <div className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center bg-gradient-to-b from-violet-100 via-violet-50 to-background px-6 py-10 text-center">
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-violet-100">
+          <Fingerprint className="h-10 w-10 text-violet-600" />
+        </div>
+        <h1 className="mt-5 text-xl font-semibold text-slate-900">Enable biometric backup?</h1>
+        <p className="mt-2 max-w-xs text-sm text-slate-500">
+          If you ever forget your PIN, biometric unlock lets you back in without
+          losing your reports. Your fingerprint or face becomes a recovery key.
+        </p>
+        {error && <p className="mt-3 text-sm font-medium text-rose-600">{error}</p>}
+        <Button onClick={enableBioBackup} disabled={busy} className="mt-6 w-full max-w-xs rounded-2xl">
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Fingerprint className="h-4 w-4" />}
+          Enable biometric
+        </Button>
+        <button
+          onClick={skipBioPrompt}
+          disabled={busy}
+          className="mt-3 text-sm text-slate-400 hover:text-slate-600 disabled:opacity-50"
+        >
+          Maybe later
+        </button>
+        <p className="mt-4 flex items-center gap-1.5 text-xs text-slate-400">
+          <ShieldAlert className="h-3 w-3" /> You can always turn this on in Profile.
+        </p>
       </div>
     );
   }
