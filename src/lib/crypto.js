@@ -137,6 +137,11 @@ export async function setupNewPinEncryption(pin) {
   const kek = await deriveKek(pin, salt);
   const wrapped = await crypto.subtle.wrapKey("raw", dek, kek, { name: "AES-GCM", iv });
   storeWrappedDek(wrapped, iv, salt);
+  // Keep the biometric wrap in sync with this new DEK so bio and PIN
+  // unlocks always load the same key.
+  if (hasBiometricWrappedDek()) {
+    await wrapDekForBiometric(dek).catch(() => {});
+  }
   return true;
 }
 
@@ -152,6 +157,11 @@ export async function unlockWithPin(pin) {
       { name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]
     );
     setSessionKey(dek);
+    // Re-sync the biometric wrap to the PIN-unwrapped DEK so a report
+    // encrypted after a biometric unlock stays readable via PIN too.
+    if (hasBiometricWrappedDek()) {
+      await wrapDekForBiometric(dek).catch(() => {});
+    }
     return true;
   } catch {
     return false;
@@ -223,6 +233,14 @@ export function removeBiometricWrappedDek() {
     localStorage.removeItem(BIO_WRAPPED_DEK_KEY);
     localStorage.removeItem(BIO_DEK_IV_KEY);
   } catch {}
+}
+
+export function hasBiometricWrappedDek() {
+  try {
+    return !!localStorage.getItem(BIO_WRAPPED_DEK_KEY);
+  } catch {
+    return false;
+  }
 }
 
 // Wrap the current session DEK for biometric unlock (call after enabling bio).
