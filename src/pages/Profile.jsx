@@ -13,7 +13,7 @@ import {
 import { setStoredPin, PIN_KEY } from "@/lib/pin";
 import {
   setupNewPinEncryption, changePinEncryption, hasWrappedDek, hasSessionKey,
-  enableBiometricEncryption, removeBiometricWrappedDek,
+  enableBiometricEncryption, removeBiometricWrappedDek, clearSessionKey,
 } from "@/lib/crypto";
 import PinSetter from "@/components/security/PinSetter";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -85,6 +85,7 @@ export default function Profile() {
   }
 
   async function signOut() {
+    clearSessionKey();
     await base44.auth.logout();
   }
 

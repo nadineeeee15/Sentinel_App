@@ -14,6 +14,7 @@ import {
   enableBiometricEncryption, generateSessionDek, clearWrappedDek,
 } from "@/lib/crypto";
 import { migrateLegacyAttachments } from "@/lib/attachments";
+import { useAutoLock } from "@/hooks/useAutoLock";
 
 const NAME_KEY = "sentinel_user_name";
 const PIN_KEY = "sentinel_app_pin";
@@ -100,6 +101,10 @@ export default function AppLock() {
     biometricAvailable().then(setBioSupported);
     setBioOn(biometricEnabled());
   }, []);
+
+  // Auto-lock: wipe the DEK and return to the PIN screen after 3 minutes of
+  // inactivity, or immediately when the tab is backgrounded/hidden.
+  useAutoLock(unlocked, () => setUnlocked(false));
 
   function fail(msg) {
     setError(msg);
