@@ -16,8 +16,8 @@ export default function StatPills({ incidents }) {
   }, [incidents]);
 
   const pills = [
-    { label: "Draft", value: counts.draft, tone: "text-amber-600 dark:text-amber-400" },
-    { label: "Completed", value: counts.completed, tone: "text-emerald-600 dark:text-emerald-400" },
+    { label: "Draft", value: counts.draft, tone: "text-amber-700 dark:text-amber-400" },
+    { label: "Completed", value: counts.completed, tone: "text-emerald-700 dark:text-emerald-400" },
   ];
 
   return (

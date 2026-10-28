@@ -90,6 +90,7 @@ export default function Register() {
             onChange={setOtpCode}
             autoFocus
             autoComplete="one-time-code"
+            aria-label="6-digit verification code"
           >
             <InputOTPGroup>
               <InputOTPSlot index={0} />

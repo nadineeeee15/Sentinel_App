@@ -84,7 +84,7 @@ export default function Authorities() {
     <div className="mx-auto min-h-dvh max-w-md bg-background text-foreground">
       <header className="sticky top-0 z-20 bg-background/85 px-4 pb-3 backdrop-blur-md" style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}>
         <div className="flex items-center gap-2">
-          <Link to="/" className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-accent select-none">
+          <Link to="/" aria-label="Back to home" className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-accent select-none">
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <h1 className="flex-1 text-center text-base font-semibold uppercase tracking-wide text-foreground">
@@ -121,6 +121,7 @@ export default function Authorities() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="e.g. police station Auckland"
+                aria-label="Search for help by place or service"
                 className="rounded-full pl-9"
               />
             </div>

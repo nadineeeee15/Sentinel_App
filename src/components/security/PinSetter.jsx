@@ -52,7 +52,8 @@ export default function PinSetter({ onDone, onCancel }) {
       <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700">
         <ShieldAlert className="h-3.5 w-3.5" /> Never share your PIN with anyone.
       </div>
-      <div className={cn("mt-4 flex gap-3", shake && "animate-[shake_0.4s]")}>
+      <p className="sr-only" aria-live="polite">{display.length} of 4 digits entered</p>
+      <div aria-hidden="true" className={cn("mt-4 flex gap-3", shake && "animate-[shake_0.4s]")}>
         {[0, 1, 2, 3].map((i) => (
           <div
             key={i}
@@ -63,7 +64,7 @@ export default function PinSetter({ onDone, onCancel }) {
           />
         ))}
       </div>
-      {error && <p className="mt-3 text-sm font-medium text-rose-600">{error}</p>}
+      {error && <p role="alert" className="mt-3 text-sm font-medium text-rose-600">{error}</p>}
       <div className="mt-4 grid grid-cols-3 gap-3">
         {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((k) => (
           <button
@@ -86,6 +87,7 @@ export default function PinSetter({ onDone, onCancel }) {
         <button
           type="button"
           onClick={del}
+          aria-label="Delete digit"
           className="flex h-14 w-14 items-center justify-center rounded-2xl text-slate-500 transition active:scale-95 hover:bg-violet-50"
         >
           <Delete className="h-5 w-5" />
@@ -94,7 +96,7 @@ export default function PinSetter({ onDone, onCancel }) {
       <button
         type="button"
         onClick={onCancel}
-        className="mt-4 text-xs text-slate-400 hover:text-slate-600"
+        className="mt-4 text-xs text-slate-500 hover:text-slate-700"
       >
         Cancel
       </button>
