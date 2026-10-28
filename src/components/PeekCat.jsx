@@ -34,17 +34,23 @@ export default function PeekCat({ className = "" }) {
             : { type: "spring", stiffness: 260, damping: 14, delay: reduce ? 0 : 0.5 }
         }
       >
-        {/* Ears */}
+        {/* Ears: both flap outwards twice, then rest */}
         <motion.g
           style={{ transformBox: "fill-box", originX: 0.5, originY: 1 }}
-          animate={reduce ? undefined : { rotate: [0, 0, -14, 0, 0] }}
-          transition={{ duration: 5, repeat: Infinity, delay: 1.5 }}
+          animate={reduce ? undefined : { rotate: [0, -22, 0, -22, 0] }}
+          transition={{ duration: 0.9, repeat: Infinity, repeatDelay: 2.6, delay: 1.2, ease: "easeInOut" }}
         >
           <path d="M12 26 L15 6 L28 18 Z" fill="#FFF7ED" />
           <path d="M15.5 22 L17 11 L24.5 18 Z" fill="#F9A8D4" />
         </motion.g>
-        <path d="M52 26 L49 6 L36 18 Z" fill="#FFF7ED" />
-        <path d="M48.5 22 L47 11 L39.5 18 Z" fill="#F9A8D4" />
+        <motion.g
+          style={{ transformBox: "fill-box", originX: 0.5, originY: 1 }}
+          animate={reduce ? undefined : { rotate: [0, 22, 0, 22, 0] }}
+          transition={{ duration: 0.9, repeat: Infinity, repeatDelay: 2.6, delay: 1.2, ease: "easeInOut" }}
+        >
+          <path d="M52 26 L49 6 L36 18 Z" fill="#FFF7ED" />
+          <path d="M48.5 22 L47 11 L39.5 18 Z" fill="#F9A8D4" />
+        </motion.g>
 
         {/* Head */}
         <ellipse cx="32" cy="36" rx="22" ry="19" fill="#FFF7ED" />
@@ -61,17 +67,12 @@ export default function PeekCat({ className = "" }) {
           <circle cx="41.6" cy="31.6" r="1" fill="#FFFFFF" />
         </motion.g>
 
-        {/* Blush, nose, mouth */}
-        <ellipse cx="17.5" cy="40" rx="3.2" ry="2" fill="#F9A8D4" opacity="0.8" />
-        <ellipse cx="46.5" cy="40" rx="3.2" ry="2" fill="#F9A8D4" opacity="0.8" />
-        <path d="M30.5 38.5 h3 l-1.5 1.8 z" fill="#EC4899" />
-        <path
-          d="M28.5 42 q1.75 1.6 3.5 0 q1.75 1.6 3.5 0"
-          fill="none"
-          stroke="#7C2D12"
-          strokeWidth="1.1"
-          strokeLinecap="round"
-        />
+        {/* Blush, nose, smile */}
+        <ellipse cx="17.5" cy="39" rx="3.4" ry="2.1" fill="#F9A8D4" opacity="0.85" />
+        <ellipse cx="46.5" cy="39" rx="3.4" ry="2.1" fill="#F9A8D4" opacity="0.85" />
+        <path d="M30.5 37.5 h3 l-1.5 1.8 z" fill="#EC4899" />
+        <path d="M26.5 40.5 Q32 48 37.5 40.5 Z" fill="#9D174D" />
+        <path d="M29.3 44.2 Q32 42.2 34.7 44.2 Q32 46.4 29.3 44.2 Z" fill="#F472B6" />
 
         {/* Paws resting on the edge */}
         <ellipse cx="21" cy="54" rx="6.5" ry="4.5" fill="#FFF7ED" />
