@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
-  ArrowLeft, Search, Globe, Phone, Loader2, MapPin, ExternalLink,
+  ArrowLeft, Search, Globe, Phone, Loader2, MapPin, ExternalLink, Info,
 } from "lucide-react";
+import { DISCLAIMER } from "@/lib/disclaimer";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import AuthoritiesMap from "@/components/incidents/AuthoritiesMap";
@@ -95,6 +96,11 @@ export default function Authorities() {
       </header>
 
       <main className="space-y-8 px-4 pb-16 pt-2">
+        <div className="flex items-start gap-2 rounded-2xl border border-border bg-card p-3 text-sm text-muted-foreground">
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          <p>{DISCLAIMER}</p>
+        </div>
+
         {/* 1. Government emergency numbers */}
         <section>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
