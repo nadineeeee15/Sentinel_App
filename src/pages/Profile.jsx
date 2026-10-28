@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  User, Fingerprint, KeyRound, LogOut, Lock, ShieldCheck, Trash2, Loader2,
+  User, Fingerprint, KeyRound, LogOut, Lock, ShieldCheck, Trash2, Loader2, Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -22,6 +22,7 @@ import {
   AlertDialogDescription, AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { clearAllAttachments } from "@/lib/attachments";
+import { hasAiConsent, setAiConsent } from "@/lib/aiConsent";
 
 const NAME_KEY = "sentinel_user_name";
 
@@ -36,7 +37,13 @@ export default function Profile() {
   const [settingPin, setSettingPin] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [aiOn, setAiOn] = useState(hasAiConsent);
   const { toast } = useToast();
+
+  function toggleAi(on) {
+    setAiConsent(on);
+    setAiOn(on);
+  }
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => setUser(null));
@@ -175,6 +182,18 @@ export default function Profile() {
               ) : (
                 <span className="text-sm font-medium text-muted-foreground/60">N/A</span>
               )}
+            </div>
+            <div className="flex items-center justify-between gap-3 p-4">
+              <div className="flex items-center gap-3">
+                <Sparkles className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium text-card-foreground">AI summaries</p>
+                  <p className="text-sm text-muted-foreground">
+                    {aiOn ? "Allowed. Report text only, never photos" : "Asks before sending anything"}
+                  </p>
+                </div>
+              </div>
+              <Switch checked={aiOn} onCheckedChange={toggleAi} aria-label="Allow AI summaries" />
             </div>
           </div>
 

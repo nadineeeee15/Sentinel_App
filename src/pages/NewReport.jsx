@@ -14,6 +14,9 @@ import {
 import CategorySelect, { CATEGORY_LABELS } from "@/components/incidents/CategorySelect";
 import AttachmentInput from "@/components/incidents/AttachmentInput";
 import PdfSafetyNotice from "@/components/incidents/PdfSafetyNotice";
+import AiConsentDialog from "@/components/incidents/AiConsentDialog";
+import { hasAiConsent, setAiConsent } from "@/lib/aiConsent";
+import { generateReportNumber } from "@/lib/reportNumber";
 import { SeverityBadge } from "@/components/incidents/IncidentBadge";
 import { persistInMemoryAttachments } from "@/lib/attachments";
 import { exportReportPDF } from "@/lib/pdfExport";
@@ -39,12 +42,15 @@ export default function NewReport() {
   const [incidentDate, setIncidentDate] = useState(toLocalInput(new Date().toISOString()));
   const [attachments, setAttachments] = useState([]);
   const [report, setReport] = useState("");
-  const [reportNumber, setReportNumber] = useState("");
+  // Assigned up front so a report without an AI summary still has a number;
+  // a generated summary replaces it with the AI function's number.
+  const [reportNumber, setReportNumber] = useState(generateReportNumber);
   const [generatedAt, setGeneratedAt] = useState("");
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [showPdfNotice, setShowPdfNotice] = useState(false);
+  const [showAiConsent, setShowAiConsent] = useState(false);
 
   function next() {
     if (step === 0 && !category) { setError("Select a category to continue."); return; }
@@ -52,9 +58,16 @@ export default function NewReport() {
       setError("Add a title and a description (min 10 characters) to continue.");
       return;
     }
-    if (step === 3 && !report) { setError("Generate your report to continue."); return; }
+    // The AI summary is optional: without one (declined or failed) the user can
+    // still continue, and the PDF uses their own description instead.
     setError("");
     setStep((s) => s + 1);
+  }
+
+  // Ask once before any text is sent to the AI service.
+  function requestGenerate() {
+    if (hasAiConsent()) generate();
+    else setShowAiConsent(true);
   }
 
   async function generate() {
@@ -115,9 +128,8 @@ export default function NewReport() {
             status: "draft",
             location: location.trim(),
             incident_date: new Date(incidentDate).toISOString(),
-            ...(report
-              ? { ai_report: report, report_generated_date: generatedAt, report_number: reportNumber }
-              : {}),
+            report_number: reportNumber,
+            ...(report ? { ai_report: report, report_generated_date: generatedAt } : {}),
           })
         );
         if (attachments.length) {
@@ -129,7 +141,7 @@ export default function NewReport() {
   }
 
   const incidentForPdf = {
-    title, category, severity, status: "draft",
+    title, description, category, severity, status: "draft",
     location, incident_date: new Date(incidentDate).toISOString(),
     ai_report: report, report_generated_date: generatedAt, report_number: reportNumber,
   };
@@ -256,23 +268,28 @@ export default function NewReport() {
                   The AI will turn your description into a formal report you can submit to a local
                   authority.
                 </p>
-                <Button onClick={generate} disabled={generating} className="mt-1 rounded-full">
+                <Button onClick={requestGenerate} disabled={generating} className="mt-1 rounded-full">
                   {generating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                   {generating ? "Writing report…" : "Generate report"}
                 </Button>
                 {error && <p className="text-sm text-rose-600">{error}</p>}
+                <p className="max-w-xs text-sm text-muted-foreground">
+                  Prefer not to use AI? Tap Continue. Your PDF will use your own description.
+                </p>
               </div>
             ) : (
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                   <Check className="h-4 w-4" /> Report generated
                 </div>
-                <div className="max-h-[55vh] overflow-y-auto rounded-2xl border border-border bg-card p-4">
-                  <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-card-foreground">
-                    {report}
-                  </pre>
-                </div>
-                <Button variant="outline" size="sm" onClick={generate} disabled={generating} className="rounded-full">
+                <Textarea
+                  value={report}
+                  onChange={(e) => setReport(e.target.value)}
+                  aria-label="AI summary (you can edit it)"
+                  className="h-[55vh] rounded-2xl border-border bg-card p-4 font-sans text-sm leading-relaxed text-card-foreground"
+                />
+                <p className="text-sm text-muted-foreground">Check the summary and edit anything that isn't right.</p>
+                <Button variant="outline" size="sm" onClick={requestGenerate} disabled={generating} className="rounded-full">
                   {generating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                   Regenerate
                 </Button>
@@ -294,9 +311,13 @@ export default function NewReport() {
 
             <div className="rounded-2xl border border-border bg-card p-4">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">AI Report</h3>
-              <pre className="mt-2 max-h-40 overflow-hidden whitespace-pre-wrap font-sans text-sm leading-relaxed text-card-foreground">
-                {report}
-              </pre>
+              {report ? (
+                <pre className="mt-2 max-h-40 overflow-hidden whitespace-pre-wrap font-sans text-sm leading-relaxed text-card-foreground">
+                  {report}
+                </pre>
+              ) : (
+                <p className="mt-2 text-sm text-muted-foreground">No AI summary. The PDF will use your own description.</p>
+              )}
             </div>
 
             <div className="rounded-2xl border border-border bg-card p-4">
@@ -362,6 +383,14 @@ export default function NewReport() {
         open={showPdfNotice}
         onOpenChange={setShowPdfNotice}
         onConfirm={() => exportReportPDF(incidentForPdf, attachments)}
+      />
+      <AiConsentDialog
+        open={showAiConsent}
+        onOpenChange={setShowAiConsent}
+        onConfirm={() => {
+          setAiConsent(true);
+          generate();
+        }}
       />
     </div>
   );

@@ -67,7 +67,10 @@ export function exportReportPDF(incident, attachments = []) {
     ["Severity", (incident.severity || "medium").toUpperCase()],
     ["When", incident.incident_date ? formatDate(incident.incident_date) : "Not provided"],
     ["Where", incident.location || "Not provided"],
-    ["Report generated", incident.report_generated_date ? formatDate(incident.report_generated_date) : "Not generated"],
+    // Only shown when an AI summary exists, so a report without one stays neutral.
+    ...(incident.report_generated_date
+      ? [["Report generated", formatDate(incident.report_generated_date)]]
+      : []),
   ];
   y += 6;
   meta.forEach(([k, v]) => {
@@ -118,11 +121,23 @@ export function exportReportPDF(incident, attachments = []) {
       if (bold) y += 2;
     });
   } else {
-    doc.setFont("helvetica", "italic");
-    doc.setFontSize(10);
-    doc.setTextColor(148, 163, 184);
-    doc.text("No AI-generated report was produced for this incident.", margin, y);
-    y += 16;
+    // No AI summary (declined or failed): export the reporter's own account.
+    if (incident.description) {
+      ensureSpace(20);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(15, 23, 42);
+      doc.text("Incident Description (reporter's own words)", margin, y);
+      y += 16;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(51, 65, 102);
+      doc.splitTextToSize(incident.description, contentW).forEach((wl) => {
+        ensureSpace(14);
+        doc.text(wl, margin, y);
+        y += 14;
+      });
+    }
   }
 
   // Attachments
