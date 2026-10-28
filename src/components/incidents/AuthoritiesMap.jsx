@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -18,7 +18,35 @@ const KIND_LABEL = {
   other: "Local authority",
 };
 
+// Keyless tile providers, in order of preference. If tiles from one keep
+// failing to load, the map switches to the next so it never stays blank.
+const TILE_SOURCES = [
+  {
+    url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+  },
+  {
+    url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://opentopomap.org">OpenTopoMap</a>',
+    maxZoom: 17,
+  },
+];
+const MAX_TILE_ERRORS = 3;
+
 export default function AuthoritiesMap({ userPos, items }) {
+  const [sourceIdx, setSourceIdx] = useState(0);
+  const tileErrors = useRef(0);
+  const source = TILE_SOURCES[sourceIdx];
+
+  function handleTileError() {
+    tileErrors.current += 1;
+    if (tileErrors.current >= MAX_TILE_ERRORS && sourceIdx < TILE_SOURCES.length - 1) {
+      tileErrors.current = 0;
+      setSourceIdx((i) => i + 1);
+    }
+  }
+
   const center = userPos
     ? [userPos.lat, userPos.lon]
     : items[0]
@@ -33,9 +61,11 @@ export default function AuthoritiesMap({ userPos, items }) {
       scrollWheelZoom={false}
     >
       <TileLayer
-        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        maxZoom={19}
+        key={source.url}
+        url={source.url}
+        attribution={source.attribution}
+        maxZoom={source.maxZoom}
+        eventHandlers={{ tileerror: handleTileError }}
       />
       {userPos && (
         <CircleMarker
