@@ -67,7 +67,10 @@ export function exportReportPDF(incident, attachments = []) {
     ["Severity", (incident.severity || "medium").toUpperCase()],
     ["When", incident.incident_date ? formatDate(incident.incident_date) : "Not provided"],
     ["Where", incident.location || "Not provided"],
-    ["Report generated", incident.report_generated_date ? formatDate(incident.report_generated_date) : "Not generated"],
+    // Only shown when an AI summary exists, so a report without one stays neutral.
+    ...(incident.report_generated_date
+      ? [["Report generated", formatDate(incident.report_generated_date)]]
+      : []),
   ];
   y += 6;
   meta.forEach(([k, v]) => {
