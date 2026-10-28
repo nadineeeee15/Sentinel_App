@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Plus, Search, ShieldAlert, Loader2, MapPin, LifeBuoy, ShieldCheck, FileText, ChevronRight } from "lucide-react";
+import { Plus, Search, ShieldAlert, Loader2, LifeBuoy, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import PixelDecor from "@/components/PixelDecor";
