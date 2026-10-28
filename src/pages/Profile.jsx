@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  User, Fingerprint, KeyRound, LogOut, Lock, ShieldCheck,
+  User, Fingerprint, KeyRound, LogOut, Lock, ShieldCheck, Trash2, Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -13,10 +13,15 @@ import {
 import { setStoredPin, PIN_KEY } from "@/lib/pin";
 import {
   setupNewPinEncryption, changePinEncryption, hasWrappedDek, hasSessionKey,
-  enableBiometricEncryption, removeBiometricWrappedDek, clearSessionKey,
+  enableBiometricEncryption, removeBiometricWrappedDek, clearWrappedDek, clearSessionKey,
 } from "@/lib/crypto";
 import PinSetter from "@/components/security/PinSetter";
 import ThemeToggle from "@/components/ThemeToggle";
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogDescription, AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+import { clearAllAttachments } from "@/lib/attachments";
 
 const NAME_KEY = "sentinel_user_name";
 
@@ -29,6 +34,8 @@ export default function Profile() {
   const [msg, setMsg] = useState("");
   const [bioMsg, setBioMsg] = useState("");
   const [settingPin, setSettingPin] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -89,6 +96,26 @@ export default function Profile() {
     await base44.auth.logout();
   }
 
+  async function deleteAccount() {
+    setDeleting(true);
+    try {
+      if (user?.id) {
+        try {
+          await base44.entities.Incident.deleteMany({ created_by_id: user.id });
+        } catch {}
+      }
+      await clearAllAttachments().catch(() => {});
+      clearWrappedDek();
+      clearSessionKey();
+      disableBiometric();
+      try { localStorage.removeItem(PIN_KEY); } catch {}
+      try { localStorage.removeItem(NAME_KEY); } catch {}
+      await base44.auth.logout("/login");
+    } catch {
+      setDeleting(false);
+    }
+  }
+
   const localName =
     (typeof localStorage !== "undefined" && localStorage.getItem(NAME_KEY)) || "";
   const displayName = user?.full_name || localName || "Sentinel user";
@@ -109,13 +136,13 @@ export default function Profile() {
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-card-foreground">{displayName}</p>
-            <p className="truncate text-xs text-muted-foreground">{email || "Signed-in user"}</p>
+            <p className="truncate text-sm text-muted-foreground">{email || "Signed-in user"}</p>
           </div>
         </section>
 
         {/* Security */}
         <section>
-          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
             Security
           </h2>
           <div className="divide-y divide-border rounded-2xl border border-border bg-card">
@@ -124,7 +151,7 @@ export default function Profile() {
                 <Lock className="h-5 w-5 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium text-card-foreground">App lock PIN</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {pinSet ? "PIN set" : "No PIN set"}
                   </p>
                 </div>
@@ -138,7 +165,7 @@ export default function Profile() {
                 <Fingerprint className="h-5 w-5 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium text-card-foreground">Biometric unlock</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {bioSupported ? "Face / Fingerprint" : "Unavailable in this browser"}
                   </p>
                 </div>
@@ -146,12 +173,12 @@ export default function Profile() {
               {bioSupported ? (
                 <Switch checked={bioOn} disabled={busy} onCheckedChange={toggleBio} />
               ) : (
-                <span className="text-xs font-medium text-muted-foreground/60">N/A</span>
+                <span className="text-sm font-medium text-muted-foreground/60">N/A</span>
               )}
             </div>
           </div>
 
-          {bioMsg && <p className="mt-2 px-1 text-xs text-muted-foreground">{bioMsg}</p>}
+          {bioMsg && <p className="mt-2 px-1 text-sm text-muted-foreground">{bioMsg}</p>}
 
           {settingPin && (
             <div className="mt-3 rounded-2xl border border-border bg-card p-4">
@@ -162,7 +189,7 @@ export default function Profile() {
 
         {/* Account */}
         <section>
-          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
             Account
           </h2>
           <div className="divide-y divide-border rounded-2xl border border-border bg-card">
@@ -171,21 +198,48 @@ export default function Profile() {
                 <KeyRound className="h-5 w-5 text-muted-foreground" />
                 <p className="text-sm font-medium text-card-foreground">Change password</p>
               </div>
-              <span className="text-xs text-muted-foreground">Via email reset</span>
+              <span className="text-sm text-muted-foreground">Via email reset</span>
             </Link>
             <button onClick={signOut} className="flex w-full items-center gap-3 p-4 text-left">
               <LogOut className="h-5 w-5 text-muted-foreground" />
               <p className="text-sm font-medium text-rose-600">Sign out</p>
             </button>
+            <button
+              onClick={() => setDeleteOpen(true)}
+              className="flex w-full items-center gap-3 p-4 text-left"
+            >
+              <Trash2 className="h-5 w-5 text-rose-600" />
+              <p className="text-sm font-medium text-rose-600">Delete account</p>
+            </button>
           </div>
         </section>
 
-        <div className="flex items-start gap-2 rounded-2xl bg-primary/10 p-3 text-xs text-primary">
+        <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete account permanently?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This removes all your encrypted reports, local attachments, and saved
+                credentials from this device, and deletes your incident records from your
+                account. This can't be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="flex justify-end gap-2">
+              <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+              <Button variant="destructive" onClick={deleteAccount} disabled={deleting}>
+                {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {deleting ? "Deleting…" : "Delete account"}
+              </Button>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <div className="flex items-start gap-2 rounded-2xl bg-primary/10 p-3 text-sm text-primary">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
           <p>Your app lock and biometric settings are stored only on this device.</p>
         </div>
 
-        {msg && <p className="text-center text-xs text-muted-foreground">{msg}</p>}
+        {msg && <p className="text-center text-sm text-muted-foreground">{msg}</p>}
       </main>
     </div>
   );

@@ -35,14 +35,14 @@ export default function CategorySelect({ value, onChange }) {
             type="button"
             onClick={() => onChange(v)}
             className={cn(
-              "flex flex-col items-center gap-1.5 rounded-2xl border p-3 text-center transition active:scale-[0.98]",
+              "select-none flex flex-col items-center gap-1.5 rounded-2xl border p-3 text-center transition active:scale-[0.98]",
               active
                 ? "border-primary bg-primary text-primary-foreground shadow-sm"
                 : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
             )}
           >
             <Icon className="h-5 w-5" />
-            <span className="text-[11px] font-medium leading-tight">{label}</span>
+            <span className="text-sm font-medium leading-tight">{label}</span>
           </button>
         );
       })}

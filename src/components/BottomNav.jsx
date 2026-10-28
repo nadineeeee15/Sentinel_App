@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { Home, FilePlus, LifeBuoy, User, FolderOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -12,9 +12,10 @@ const ITEMS = [
 ];
 
 export default function BottomNav() {
+  const navigate = useNavigate();
   return (
     <nav
-      className="fixed bottom-0 left-1/2 z-30 w-full max-w-md -translate-x-1/2 border-t border-border bg-card/95 backdrop-blur-md"
+      className="fixed bottom-0 left-1/2 z-30 w-full max-w-md -translate-x-1/2 select-none border-t border-border bg-card/95 backdrop-blur-md"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="grid grid-cols-5">
@@ -23,9 +24,14 @@ export default function BottomNav() {
             key={to}
             to={to}
             end={end}
+            onClick={() => {
+              // Tapping a tab (including the active one) returns to its root.
+              navigate(to);
+              window.scrollTo(0, 0);
+            }}
             className={({ isActive }) =>
               cn(
-                "flex flex-col items-center gap-1 py-2 text-[11px] font-medium transition",
+                "flex flex-col items-center gap-1 py-2 text-sm font-medium transition",
                 isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )
             }

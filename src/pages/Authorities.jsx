@@ -81,15 +81,15 @@ export default function Authorities() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-md bg-background text-foreground">
-      <header className="sticky top-0 z-20 bg-background/85 px-4 py-3 backdrop-blur-md">
+      <header className="sticky top-0 z-20 bg-background/85 px-4 pb-3 backdrop-blur-md" style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}>
         <div className="flex items-center gap-2">
-          <Link to="/" className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-accent">
+          <Link to="/" className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-accent select-none">
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <h1 className="flex-1 text-center text-base font-semibold uppercase tracking-wide text-foreground">
             Get Help
           </h1>
-          <div className="h-9 w-9" />
+          <div className="h-11 w-11" />
         </div>
         <div className="mx-auto mt-2 h-px w-24 bg-primary" />
       </header>
@@ -97,7 +97,7 @@ export default function Authorities() {
       <main className="space-y-8 px-4 pb-16 pt-2">
         {/* 1. Government emergency numbers */}
         <section>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
             1. Government emergency numbers
           </h2>
           <EmergencyNumbers />
@@ -105,7 +105,7 @@ export default function Authorities() {
 
         {/* 2. Live / nearest help */}
         <section>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
             2. Live / nearest help
           </h2>
           <form onSubmit={onSubmit} className="mt-2 flex gap-2">
@@ -126,7 +126,7 @@ export default function Authorities() {
           {!searched && !loading && (
             <div className="mt-3 space-y-3">
               <div>
-                <p className="text-xs font-medium text-foreground">Find help near you (uses your location):</p>
+                <p className="text-sm font-medium text-foreground">Find help near you (uses your location):</p>
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   {NEARBY_OPTIONS.map((opt) => (
                     <button
@@ -142,14 +142,14 @@ export default function Authorities() {
                 </div>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Or search by name:</p>
+                <p className="text-sm text-muted-foreground">Or search by name:</p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {["Police station", "Fire station", "Town hall"].map((ex) => (
                     <button
                       key={ex}
                       type="button"
                       onClick={() => runSearch(ex)}
-                      className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover:border-primary"
+                      className="rounded-full border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground transition hover:border-primary"
                     >
                       {ex}
                     </button>
@@ -163,7 +163,7 @@ export default function Authorities() {
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <Loader2 className="h-6 w-6 animate-spin" />
               <p className="mt-2 text-sm">{nearby ? "Finding nearby help…" : "Searching…"}</p>
-              {nearby && <p className="mt-1 text-xs">This can take a few seconds.</p>}
+              {nearby && <p className="mt-1 text-sm">This can take a few seconds.</p>}
             </div>
           )}
 
@@ -178,7 +178,7 @@ export default function Authorities() {
 
           {searched && !loading && !error && (
             <>
-              <p className="mt-3 text-xs text-muted-foreground">
+              <p className="mt-3 text-sm text-muted-foreground">
                 {items.length} result{items.length === 1 ? "" : "s"} found{userPos ? " near you" : ""}.
               </p>
               {items.length > 0 && <AuthoritiesMap key={mapKey} userPos={userPos} items={items} />}
@@ -191,16 +191,16 @@ export default function Authorities() {
                   {items.map((it) => (
                     <div key={it.id} className="rounded-2xl border border-border bg-card p-3.5">
                       <p className="truncate text-sm font-semibold text-foreground">{it.name}</p>
-                      <p className="text-xs capitalize text-muted-foreground">
+                      <p className="text-sm capitalize text-muted-foreground">
                         {KIND_LABEL[it.kind] || it.kind}
                         {it.distance != null && ` · ${formatDistance(it.distance)} away`}
                       </p>
                       {it.fullName && (
-                        <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground">{it.fullName}</p>
+                        <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{it.fullName}</p>
                       )}
                       <div className="mt-2.5 space-y-1.5">
                         {it.phone && (
-                          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
                             <Phone className="h-3.5 w-3.5 text-muted-foreground" /> {it.phone}
                           </p>
                         )}
@@ -209,7 +209,7 @@ export default function Authorities() {
                             href={it.website}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
                           >
                             <Globe className="h-3.5 w-3.5" /> Visit website
                             <ExternalLink className="h-3 w-3" />
@@ -219,7 +219,7 @@ export default function Authorities() {
                             href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(it.fullName || it.name)}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
                           >
                             <MapPin className="h-3.5 w-3.5" /> Find on Maps
                             <ExternalLink className="h-3 w-3" />

@@ -153,6 +153,17 @@ export async function deleteAttachmentsForIncident(incidentId) {
   await Promise.all(items.map((a) => deleteAttachment(a.id)));
 }
 
+// Wipe every attachment record (used during account deletion).
+export async function clearAllAttachments() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    const req = tx.objectStore(STORE).clear();
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
 // Used by the wizard: persist a set of in-memory attachment objects (already
 // read as data URLs) against a newly created incident id.
 export async function persistInMemoryAttachments(incidentId, attachments) {

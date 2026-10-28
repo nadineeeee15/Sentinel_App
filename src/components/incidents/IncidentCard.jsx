@@ -14,7 +14,7 @@ export default function IncidentCard({ incident }) {
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
           {incident.report_number && (
-            <p className="mb-1.5 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-violet-300/70">
+            <p className="mb-1.5 flex items-center gap-1 text-sm font-semibold uppercase tracking-wide text-slate-400 dark:text-violet-300/70">
               <Hash className="h-3 w-3" /> {incident.report_number}
             </p>
           )}
@@ -31,21 +31,21 @@ export default function IncidentCard({ incident }) {
               incident.title
             )}
           </h3>
-          <p className="mt-0.5 text-xs text-slate-400 dark:text-violet-200/70">
+          <p className="mt-0.5 text-sm text-slate-400 dark:text-violet-200/70">
             {CATEGORY_LABELS[incident.category] || incident.category}
           </p>
           {!incident._locked && incident.location && (
-            <p className="mt-1 flex items-center gap-1 truncate text-xs text-slate-500 dark:text-violet-200/70">
+            <p className="mt-1 flex items-center gap-1 truncate text-sm text-slate-500 dark:text-violet-200/70">
               <MapPin className="h-3.5 w-3.5 shrink-0" />
               {incident.location}
             </p>
           )}
-          <p className="mt-1 flex items-center gap-1 text-xs text-slate-400 dark:text-violet-200/60">
+          <p className="mt-1 flex items-center gap-1 text-sm text-slate-400 dark:text-violet-200/60">
             <CalendarDays className="h-3.5 w-3.5 shrink-0" />
             {formatRelative(incident.incident_date)}
           </p>
           {incident.ai_report && (
-            <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+            <p className="mt-1.5 flex items-center gap-1 text-sm font-medium text-emerald-600 dark:text-emerald-400">
               <FileText className="h-3.5 w-3.5" /> Report ready
             </p>
           )}
