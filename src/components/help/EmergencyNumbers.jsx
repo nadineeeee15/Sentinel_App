@@ -5,9 +5,9 @@ import { Phone } from "lucide-react";
 const NUMBERS = [
   { label: "Emergency — Police, Fire, Ambulance", number: "111" },
   { label: "Police non-emergency", number: "105" },
-  { label: "Victim Support", number: "0800 842 746" },
+  { label: "Victim Support", number: "0800 842 846" },
   { label: "Women's Refuge", number: "0800 733 843" },
-  { label: "Netsafe — online harm", number: "0800 338 338" },
+  { label: "Netsafe — online harm", number: "0508 638 723" },
   { label: "Safe to Talk — sexual harm", number: "0800 044 334" },
 ];
 
