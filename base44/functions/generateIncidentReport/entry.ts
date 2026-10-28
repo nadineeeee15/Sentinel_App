@@ -36,6 +36,7 @@ STRICT RULES:
 - Do NOT request or reference any images or attachments — this report is generated from text only, for privacy. You may include a placeholder note that supporting evidence (screenshots/photos) is retained locally by the reporter and is available on request.
 - Write in a formal, objective, third-person tone suitable for an official submission, but remain respectful and non-judgmental toward the reporter. Refer to them as "the reporter".
 - Do not speculate about the perpetrator's identity or motives beyond what the reporter stated.
+- Do NOT include recommendations, advice, or next steps anywhere in the report. Deciding on actions is the responsibility of the agency receiving the report.
 - Use Markdown with the section headings below, in this order.
 
 Produce the report with exactly these sections:
@@ -55,9 +56,7 @@ Produce the report with exactly these sections:
 (Describe the impact based strictly on the report — e.g. fear, distress, disruption to daily life, financial loss, safety concerns. If impact is unknown, say so.)
 ## 6. Evidence Retained
 (Short note: the reporter has retained supporting evidence (e.g. screenshots, photos, messages) locally on their device for privacy. Available to authorities on request.)
-## 7. Recommended Actions
-(3-6 concise, practical next steps appropriate for this category — e.g. preserve evidence, block and report the account, keep a log of any further contact, contact police if in immediate danger, reach out to a victim support service. Generic best-practice guidance, not specific facts about this case.)
-## 8. Reporter's Notes
+## 7. Reporter's Notes
 (Any additional context the reporter included that did not fit above, or "None provided".)
 
 REPORTER'S RAW INPUT (use only this as the source of facts):
