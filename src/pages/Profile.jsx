@@ -180,7 +180,7 @@ export default function Profile() {
                 </div>
               </div>
               {bioSupported ? (
-                <Switch checked={bioOn} disabled={busy} onCheckedChange={toggleBio} />
+                <Switch checked={bioOn} disabled={busy} onCheckedChange={toggleBio} aria-label="Biometric unlock" />
               ) : (
                 <span className="text-sm font-medium text-muted-foreground">N/A</span>
               )}
