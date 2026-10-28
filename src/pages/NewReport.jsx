@@ -150,7 +150,7 @@ export default function NewReport() {
     <div className="mx-auto min-h-dvh max-w-md bg-background text-foreground">
       <header className="sticky top-0 z-20 bg-card/85 px-4 pb-3 backdrop-blur-md" style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}>
         <div className="flex items-center gap-2">
-          <button onClick={saveDraftAndLeave} className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-accent select-none">
+          <button onClick={saveDraftAndLeave} aria-label="Save draft and go back" className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-accent select-none">
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
@@ -190,9 +190,9 @@ export default function NewReport() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Severity</Label>
+                <Label htmlFor="severity">Severity</Label>
                 <Select value={severity} onValueChange={setSeverity}>
-                  <SelectTrigger className="capitalize"><SelectValue /></SelectTrigger>
+                  <SelectTrigger id="severity" className="capitalize"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {["low", "medium", "high", "critical"].map((s) => (
                       <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
@@ -254,8 +254,8 @@ export default function NewReport() {
             <div className="flex items-start gap-2 rounded-xl bg-primary/10 p-3 text-sm text-primary">
               <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
               <p>
-                Only your text description is sent to the AI to draft a formal report. No images
-                leave your device.
+                Only the text you typed (title, category, severity, description, location and date)
+                is sent to the AI to draft a formal report. No images leave your device.
               </p>
             </div>
             {!report ? (
@@ -279,7 +279,7 @@ export default function NewReport() {
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                <div className="flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
                   <Check className="h-4 w-4" /> Report generated
                 </div>
                 <Textarea

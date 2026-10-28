@@ -120,7 +120,7 @@ export default function IncidentDetail() {
   return (
     <div className="mx-auto min-h-dvh max-w-md bg-background text-foreground">
       <header className="sticky top-0 z-20 flex items-center justify-between bg-card/85 px-4 pb-3 backdrop-blur-md" style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}>
-        <Link to="/" className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-accent select-none">
+        <Link to="/" aria-label="Back" className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-accent select-none">
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex gap-2">
@@ -132,6 +132,7 @@ export default function IncidentDetail() {
             variant="outline" size="sm"
             className="rounded-full text-rose-600 hover:bg-rose-500/10"
             onClick={handleDelete} disabled={deleting}
+            aria-label="Delete report"
           >
             {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
           </Button>
@@ -215,7 +216,7 @@ export default function IncidentDetail() {
         <div className="mt-4 rounded-2xl border border-border bg-card p-4">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Status</h2>
           <Select value={incident.status} onValueChange={changeStatus} disabled={updating}>
-            <SelectTrigger className="mt-2 capitalize">
+            <SelectTrigger className="mt-2 capitalize" aria-label="Report status">
               {updating ? <Loader2 className="h-4 w-4 animate-spin" /> : <SelectValue />}
             </SelectTrigger>
             <SelectContent>

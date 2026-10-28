@@ -14,6 +14,7 @@ import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import Home from '@/pages/Home';
 import { lazy, Suspense } from 'react';
+import { MotionConfig } from 'framer-motion';
 const NewReport = lazy(() => import('@/pages/NewReport'));
 const IncidentDetail = lazy(() => import('@/pages/IncidentDetail'));
 const Authorities = lazy(() => import('@/pages/Authorities'));
@@ -75,10 +76,14 @@ function App() {
     <AuthProvider>
       <ThemeProvider>
         <QueryClientProvider client={queryClientInstance}>
-          <Router>
-            <ScrollToTop />
-            <AuthenticatedApp />
-          </Router>
+          {/* Honour the device's Reduce Motion setting for every Framer Motion
+              animation (route slides, logo float, header glow, etc.). */}
+          <MotionConfig reducedMotion="user">
+            <Router>
+              <ScrollToTop />
+              <AuthenticatedApp />
+            </Router>
+          </MotionConfig>
           <Toaster />
         </QueryClientProvider>
       </ThemeProvider>

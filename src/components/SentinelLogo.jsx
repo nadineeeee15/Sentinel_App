@@ -17,6 +17,7 @@ export default function SentinelLogo({ size = "h-28 w-28", animate = true }) {
     return (
       <Image
         src={LOGO_URL}
+        alt="Sentinel logo: a knight guarding a padlock"
         fittingType="fit"
         className={`${size} rounded-3xl shadow-lg shadow-violet-500/20`}
       />
@@ -65,8 +66,8 @@ export default function SentinelLogo({ size = "h-28 w-28", animate = true }) {
         transition={{ type: "spring", stiffness: 210, damping: 12, delay: 0.15 }}
         whileHover={{ scale: 1.06 }}
         whileTap={{ scale: 0.9 }}
-        className="relative z-10 cursor-pointer outline-none"
-        aria-label="Sentinel guardian"
+        className="relative z-10 cursor-pointer rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-violet-600 focus-visible:ring-offset-2"
+        aria-label="Sentinel logo: a knight guarding a padlock"
       >
         <motion.div
           animate={{ y: [0, -6, 0] }}
@@ -74,6 +75,7 @@ export default function SentinelLogo({ size = "h-28 w-28", animate = true }) {
         >
           <Image
             src={LOGO_URL}
+            alt=""
             fittingType="fit"
             className={`${size} rounded-3xl shadow-lg shadow-violet-500/30`}
           />

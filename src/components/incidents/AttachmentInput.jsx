@@ -65,6 +65,7 @@ export default function AttachmentInput({ attachments, onAdd, onRemove }) {
               <button
                 type="button"
                 onClick={() => onRemove?.(i)}
+                aria-label={`Remove attachment ${i + 1}`}
                 className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white"
               >
                 <X className="h-3.5 w-3.5" />
@@ -75,7 +76,7 @@ export default function AttachmentInput({ attachments, onAdd, onRemove }) {
       )}
 
       {notice && (
-        <p className="text-xs text-amber-600 dark:text-amber-400">{notice}</p>
+        <p className="text-xs text-amber-700 dark:text-amber-400">{notice}</p>
       )}
 
       <div className="flex items-center justify-between text-xs text-muted-foreground">

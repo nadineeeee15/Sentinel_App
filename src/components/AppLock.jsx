@@ -52,17 +52,20 @@ async function requestPersistentStorage() {
 
 function Dots({ display, shake }) {
   return (
-    <div className={cn("mt-6 flex gap-3", shake && "animate-[shake_0.4s]")}>
-      {[0, 1, 2, 3].map((i) => (
-        <div
-          key={i}
-          className={cn(
-            "h-3.5 w-3.5 rounded-full border-2 transition",
-            i < display.length ? "border-primary bg-primary" : "border-slate-300 bg-transparent"
-          )}
-        />
-      ))}
-    </div>
+    <>
+      <p className="sr-only" aria-live="polite">{display.length} of 4 digits entered</p>
+      <div aria-hidden="true" className={cn("mt-6 flex gap-3", shake && "animate-[shake_0.4s]")}>
+        {[0, 1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className={cn(
+              "h-3.5 w-3.5 rounded-full border-2 transition",
+              i < display.length ? "border-primary bg-primary" : "border-slate-300 bg-transparent"
+            )}
+          />
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -91,6 +94,7 @@ function Keypad({ onPress, onDel, disabled = false, dimmed = false }) {
       <button
         onClick={onDel}
         disabled={disabled}
+        aria-label="Delete digit"
         className="flex h-16 w-16 items-center justify-center rounded-2xl text-slate-500 transition active:scale-95 hover:bg-violet-50"
       >
         <Delete className="h-6 w-6" />
@@ -337,11 +341,11 @@ export default function AppLock() {
           <Fingerprint className="h-10 w-10 text-violet-600" />
         </div>
         <h1 className="mt-5 text-xl font-semibold text-slate-900">Enable biometric backup?</h1>
-        <p className="mt-2 max-w-xs text-sm text-slate-500">
+        <p className="mt-2 max-w-xs text-sm text-slate-600">
           If you ever forget your PIN, biometric unlock lets you back in without
           losing your reports. Your fingerprint or face becomes a recovery key.
         </p>
-        {error && <p className="mt-3 text-sm font-medium text-rose-600">{error}</p>}
+        {error && <p role="alert" className="mt-3 text-sm font-medium text-rose-700">{error}</p>}
         <Button onClick={enableBioBackup} disabled={busy} className="mt-6 w-full max-w-xs rounded-2xl">
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Fingerprint className="h-4 w-4" />}
           Enable biometric
@@ -349,11 +353,11 @@ export default function AppLock() {
         <button
           onClick={skipBioPrompt}
           disabled={busy}
-          className="mt-3 text-sm text-slate-400 hover:text-slate-600 disabled:opacity-50"
+          className="mt-3 text-sm text-slate-600 hover:text-slate-800 disabled:opacity-50"
         >
           Maybe later
         </button>
-        <p className="mt-4 flex items-center gap-1.5 text-xs text-slate-400">
+        <p className="mt-4 flex items-center gap-1.5 text-xs text-slate-600">
           <ShieldAlert className="h-3 w-3" /> You can always turn this on in Profile.
         </p>
       </div>
@@ -390,7 +394,7 @@ export default function AppLock() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 0.5 }}
-            className="mt-2 max-w-xs text-sm text-slate-500"
+            className="mt-2 max-w-xs text-sm text-slate-600"
           >
             This is Sentinel, your safe space for everything. You got this.
           </motion.p>
@@ -412,11 +416,11 @@ export default function AppLock() {
             className="rounded-2xl"
             autoFocus
           />
-          <p className="mt-2 text-xs leading-relaxed text-slate-500">{DISCLAIMER}</p>
+          <p className="mt-2 text-xs leading-relaxed text-slate-600">{DISCLAIMER}</p>
           <Button onClick={startWithName} className="mt-3 w-full rounded-2xl">
             Continue <ArrowRight className="h-4 w-4" />
           </Button>
-          {error && <p className="mt-2 text-sm text-rose-600">{error}</p>}
+          {error && <p role="alert" className="mt-2 text-sm text-rose-700">{error}</p>}
         </motion.div>
       </div>
     );
@@ -428,14 +432,14 @@ export default function AppLock() {
       <div className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center bg-gradient-to-b from-violet-100 via-violet-50 to-background px-6 py-10 text-center">
         <SentinelLogo size="h-20 w-20" animate={false} />
         <h1 className="mt-4 text-xl font-semibold text-slate-900">Set your app PIN</h1>
-        <p className="mt-1 max-w-xs text-sm text-slate-500">
+        <p className="mt-1 max-w-xs text-sm text-slate-600">
           {setStep === "confirm" ? "Re-enter your PIN to confirm" : "Choose a 4-digit PIN to protect your reports"}
         </p>
         <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700">
           <ShieldAlert className="h-3.5 w-3.5" /> Never share your PIN with anyone.
         </div>
         <Dots display={display} shake={shake} />
-        {error && <p className="mt-4 text-sm font-medium text-rose-600">{error}</p>}
+        {error && <p role="alert" className="mt-4 text-sm font-medium text-rose-700">{error}</p>}
         <Keypad onPress={press} onDel={del} />
         {bioSupported && (
           <button
@@ -457,11 +461,11 @@ export default function AppLock() {
     <div className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center bg-gradient-to-b from-violet-100 via-violet-50 to-background px-6 py-10 text-center">
       <SentinelLogo size="h-24 w-24" animate={false} />
       <h1 className="mt-4 text-xl font-semibold text-slate-900">Welcome back, {firstName}</h1>
-      <p className="mt-1 text-sm text-slate-500">Enter your PIN to unlock</p>
+      <p className="mt-1 text-sm text-slate-600">Enter your PIN to unlock</p>
       <Dots display={display} shake={shake} />
-      {error && <p className="mt-4 text-sm font-medium text-rose-600">{error}</p>}
+      {error && <p role="alert" className="mt-4 text-sm font-medium text-rose-700">{error}</p>}
       {locked && (
-        <div className="mt-4 text-sm font-medium text-rose-600">
+        <div className="mt-4 text-sm font-medium text-rose-700">
           <p role="alert">
             Too many wrong PINs. The keypad is locked for {describeWait(lockTotalMs)}.
           </p>
@@ -479,7 +483,7 @@ export default function AppLock() {
           Use biometrics
         </button>
       )}
-      <button onClick={resetPin} className="mt-4 text-xs text-slate-400 hover:text-slate-600">
+      <button onClick={resetPin} className="mt-4 text-xs text-slate-600 hover:text-slate-800">
         Reset PIN
       </button>
       <style>{`@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }`}</style>

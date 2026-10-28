@@ -182,7 +182,7 @@ export default function Profile() {
               {bioSupported ? (
                 <Switch checked={bioOn} disabled={busy} onCheckedChange={toggleBio} />
               ) : (
-                <span className="text-sm font-medium text-muted-foreground/60">N/A</span>
+                <span className="text-sm font-medium text-muted-foreground">N/A</span>
               )}
             </div>
             <div className="flex items-center justify-between gap-3 p-4">

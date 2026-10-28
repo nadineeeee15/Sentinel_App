@@ -92,13 +92,13 @@ export default function Home() {
       )}
       {/* Greeting header */}
       <header className="px-5 pb-3 pt-6">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-500 via-violet-600 to-fuchsia-700 p-5 text-white shadow-2xl shadow-fuchsia-900/30">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600 via-violet-600 to-fuchsia-700 p-5 text-white shadow-2xl shadow-fuchsia-900/30">
           <PixelDecor />
           <motion.p
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="relative text-xs font-medium uppercase tracking-wider text-violet-200"
+            className="relative text-xs font-medium uppercase tracking-wider text-violet-100"
           >
             {todayLabel()}
           </motion.p>
@@ -123,13 +123,13 @@ export default function Home() {
             <PeekCat className="absolute bottom-full right-4 h-[50px] w-[64px]" />
             <Link
               to="/new"
-              className="flex items-center justify-center gap-2 rounded-2xl border border-white/25 bg-white/15 px-3 py-2.5 text-sm font-medium backdrop-blur-md transition hover:bg-white/25 active:scale-[0.98]"
+              className="flex items-center justify-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-3 py-2.5 text-sm font-medium backdrop-blur-md transition hover:bg-white/25 active:scale-[0.98]"
             >
               <Plus className="h-4 w-4" /> New report
             </Link>
             <Link
               to="/authorities"
-              className="flex items-center justify-center gap-2 rounded-2xl border border-white/25 bg-white/15 px-3 py-2.5 text-sm font-medium backdrop-blur-md transition hover:bg-white/25 active:scale-[0.98]"
+              className="flex items-center justify-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-3 py-2.5 text-sm font-medium backdrop-blur-md transition hover:bg-white/25 active:scale-[0.98]"
             >
               <LifeBuoy className="h-4 w-4" /> Get Help
             </Link>
@@ -144,11 +144,12 @@ export default function Home() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search reports"
+              aria-label="Search reports"
               className="rounded-full border-border bg-card text-foreground placeholder:text-muted-foreground pl-9 dark:border-white/10 dark:bg-white/10 dark:text-white dark:placeholder:text-violet-200/60"
             />
           </div>
           <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger className="w-[8.5rem] rounded-full border-border bg-card text-foreground capitalize backdrop-blur dark:border-white/10 dark:bg-white/10 dark:text-white">
+            <SelectTrigger aria-label="Filter reports by status" className="w-[8.5rem] rounded-full border-border bg-card text-foreground capitalize backdrop-blur dark:border-white/10 dark:bg-white/10 dark:text-white">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
