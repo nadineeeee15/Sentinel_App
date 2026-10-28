@@ -15,6 +15,7 @@ import {
 } from "@/lib/crypto";
 import { migrateLegacyAttachments } from "@/lib/attachments";
 import { useAutoLock } from "@/hooks/useAutoLock";
+import { DISCLAIMER } from "@/lib/disclaimer";
 
 const NAME_KEY = "sentinel_user_name";
 const PIN_KEY = "sentinel_app_pin";
@@ -369,6 +370,7 @@ export default function AppLock() {
             className="rounded-2xl"
             autoFocus
           />
+          <p className="mt-2 text-xs leading-relaxed text-slate-500">{DISCLAIMER}</p>
           <Button onClick={startWithName} className="mt-3 w-full rounded-2xl">
             Continue <ArrowRight className="h-4 w-4" />
           </Button>
