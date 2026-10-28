@@ -16,6 +16,7 @@ import AttachmentInput from "@/components/incidents/AttachmentInput";
 import PdfSafetyNotice from "@/components/incidents/PdfSafetyNotice";
 import AiConsentDialog from "@/components/incidents/AiConsentDialog";
 import { hasAiConsent, setAiConsent } from "@/lib/aiConsent";
+import { generateReportNumber } from "@/lib/reportNumber";
 import { SeverityBadge } from "@/components/incidents/IncidentBadge";
 import { persistInMemoryAttachments } from "@/lib/attachments";
 import { exportReportPDF } from "@/lib/pdfExport";
@@ -41,7 +42,9 @@ export default function NewReport() {
   const [incidentDate, setIncidentDate] = useState(toLocalInput(new Date().toISOString()));
   const [attachments, setAttachments] = useState([]);
   const [report, setReport] = useState("");
-  const [reportNumber, setReportNumber] = useState("");
+  // Assigned up front so a report without an AI summary still has a number;
+  // a generated summary replaces it with the AI function's number.
+  const [reportNumber, setReportNumber] = useState(generateReportNumber);
   const [generatedAt, setGeneratedAt] = useState("");
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -125,9 +128,8 @@ export default function NewReport() {
             status: "draft",
             location: location.trim(),
             incident_date: new Date(incidentDate).toISOString(),
-            ...(report
-              ? { ai_report: report, report_generated_date: generatedAt, report_number: reportNumber }
-              : {}),
+            report_number: reportNumber,
+            ...(report ? { ai_report: report, report_generated_date: generatedAt } : {}),
           })
         );
         if (attachments.length) {

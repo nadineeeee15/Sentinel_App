@@ -119,11 +119,6 @@ export function exportReportPDF(incident, attachments = []) {
     });
   } else {
     // No AI summary (declined or failed): export the reporter's own account.
-    doc.setFont("helvetica", "italic");
-    doc.setFontSize(10);
-    doc.setTextColor(148, 163, 184);
-    doc.text("No AI-generated report was produced for this incident.", margin, y);
-    y += 22;
     if (incident.description) {
       ensureSpace(20);
       doc.setFont("helvetica", "bold");
