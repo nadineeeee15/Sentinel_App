@@ -34,23 +34,23 @@ export default function PeekCat({ className = "" }) {
             : { type: "spring", stiffness: 260, damping: 14, delay: reduce ? 0 : 0.5 }
         }
       >
-        {/* Ears: both flap outwards twice, then rest */}
-        <motion.g
-          style={{ transformBox: "fill-box", originX: 0.5, originY: 1 }}
-          animate={reduce ? undefined : { rotate: [0, -22, 0, -22, 0] }}
-          transition={{ duration: 0.9, repeat: Infinity, repeatDelay: 2.6, delay: 1.2, ease: "easeInOut" }}
-        >
+        {/* Ears: both flap outwards twice, then rest. Plain CSS keyframes with
+            the pivot at each ear's base, which is reliable on SVG groups. */}
+        <style>{`
+          @keyframes peekcat-ear-l { 0%, 70%, 100% { transform: rotate(0deg); } 77%, 91% { transform: rotate(-28deg); } 84% { transform: rotate(0deg); } }
+          @keyframes peekcat-ear-r { 0%, 70%, 100% { transform: rotate(0deg); } 77%, 91% { transform: rotate(28deg); } 84% { transform: rotate(0deg); } }
+          .peekcat-ear-l { transform-origin: 20px 24px; animation: peekcat-ear-l 3.5s ease-in-out infinite; }
+          .peekcat-ear-r { transform-origin: 44px 24px; animation: peekcat-ear-r 3.5s ease-in-out infinite; }
+          @media (prefers-reduced-motion: reduce) { .peekcat-ear-l, .peekcat-ear-r { animation: none; } }
+        `}</style>
+        <g className="peekcat-ear-l">
           <path d="M12 26 L15 6 L28 18 Z" fill="#FFF7ED" />
           <path d="M15.5 22 L17 11 L24.5 18 Z" fill="#F9A8D4" />
-        </motion.g>
-        <motion.g
-          style={{ transformBox: "fill-box", originX: 0.5, originY: 1 }}
-          animate={reduce ? undefined : { rotate: [0, 22, 0, 22, 0] }}
-          transition={{ duration: 0.9, repeat: Infinity, repeatDelay: 2.6, delay: 1.2, ease: "easeInOut" }}
-        >
+        </g>
+        <g className="peekcat-ear-r">
           <path d="M52 26 L49 6 L36 18 Z" fill="#FFF7ED" />
           <path d="M48.5 22 L47 11 L39.5 18 Z" fill="#F9A8D4" />
-        </motion.g>
+        </g>
 
         {/* Head */}
         <ellipse cx="32" cy="36" rx="22" ry="19" fill="#FFF7ED" />
