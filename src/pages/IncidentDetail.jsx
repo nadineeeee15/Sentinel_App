@@ -95,7 +95,6 @@ export default function IncidentDetail() {
     setExporting(true);
     try {
       exportReportPDF(incident, attachments);
-      setShowPdfNotice(true);
     } finally {
       setTimeout(() => setExporting(false), 500);
     }
@@ -125,7 +124,7 @@ export default function IncidentDetail() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="rounded-full" onClick={handleExport} disabled={exporting}>
+          <Button variant="outline" size="sm" className="rounded-full" onClick={() => setShowPdfNotice(true)} disabled={exporting}>
             {exporting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Download className="mr-1 h-4 w-4" />}
             PDF
           </Button>
@@ -245,7 +244,7 @@ export default function IncidentDetail() {
         </Link>
       </main>
 
-      <PdfSafetyNotice open={showPdfNotice} onOpenChange={setShowPdfNotice} />
+      <PdfSafetyNotice open={showPdfNotice} onOpenChange={setShowPdfNotice} onConfirm={handleExport} />
     </div>
   );
 }

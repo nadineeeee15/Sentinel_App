@@ -324,10 +324,7 @@ export default function NewReport() {
             <Button
               variant="outline"
               className="w-full rounded-full"
-              onClick={() => {
-                exportReportPDF(incidentForPdf, attachments);
-                setShowPdfNotice(true);
-              }}
+              onClick={() => setShowPdfNotice(true)}
             >
               <Download className="mr-2 h-4 w-4" /> Export PDF now
             </Button>
@@ -361,7 +358,11 @@ export default function NewReport() {
         </div>
       </div>
 
-      <PdfSafetyNotice open={showPdfNotice} onOpenChange={setShowPdfNotice} />
+      <PdfSafetyNotice
+        open={showPdfNotice}
+        onOpenChange={setShowPdfNotice}
+        onConfirm={() => exportReportPDF(incidentForPdf, attachments)}
+      />
     </div>
   );
 }
