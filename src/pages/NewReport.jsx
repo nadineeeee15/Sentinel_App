@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import {
-  ArrowLeft, ArrowRight, Loader2, Sparkles, Check, ShieldCheck, FileText, Download,
+  ArrowLeft, ArrowRight, Loader2, Sparkles, Check, ShieldCheck, Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
