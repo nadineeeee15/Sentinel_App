@@ -120,7 +120,7 @@ export default function Home() {
           </motion.p>
 
           <div className="relative mt-4 grid grid-cols-2 gap-2">
-            <PeekCat className="absolute bottom-full right-4 h-[55px] w-[70px]" />
+            <PeekCat className="absolute bottom-full right-4 h-[60px] w-[77px]" />
             <Link
               to="/new"
               className="flex items-center justify-center gap-2 rounded-2xl border border-white/25 bg-white/15 px-3 py-2.5 text-sm font-medium backdrop-blur-md transition hover:bg-white/25 active:scale-[0.98]"
