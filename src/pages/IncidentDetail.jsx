@@ -11,6 +11,7 @@ import {
 import { SeverityBadge, StatusBadge } from "@/components/incidents/IncidentBadge";
 import { CATEGORY_LABELS } from "@/components/incidents/CategorySelect";
 import AttachmentInput from "@/components/incidents/AttachmentInput";
+import PdfSafetyNotice from "@/components/incidents/PdfSafetyNotice";
 import { formatRelative, formatDate } from "@/lib/dates";
 import {
   getAttachments, addInMemoryAttachment, deleteAttachment, deleteAttachmentsForIncident,
@@ -30,6 +31,7 @@ export default function IncidentDetail() {
   const [updating, setUpdating] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [showPdfNotice, setShowPdfNotice] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -93,6 +95,7 @@ export default function IncidentDetail() {
     setExporting(true);
     try {
       exportReportPDF(incident, attachments);
+      setShowPdfNotice(true);
     } finally {
       setTimeout(() => setExporting(false), 500);
     }
@@ -241,6 +244,8 @@ export default function IncidentDetail() {
           <ArrowLeft className="h-4 w-4 rotate-180 text-muted-foreground/50" />
         </Link>
       </main>
+
+      <PdfSafetyNotice open={showPdfNotice} onOpenChange={setShowPdfNotice} />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import CategorySelect, { CATEGORY_LABELS } from "@/components/incidents/CategorySelect";
 import AttachmentInput from "@/components/incidents/AttachmentInput";
+import PdfSafetyNotice from "@/components/incidents/PdfSafetyNotice";
 import { SeverityBadge } from "@/components/incidents/IncidentBadge";
 import { persistInMemoryAttachments } from "@/lib/attachments";
 import { exportReportPDF } from "@/lib/pdfExport";
@@ -43,6 +44,7 @@ export default function NewReport() {
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [showPdfNotice, setShowPdfNotice] = useState(false);
 
   function next() {
     if (step === 0 && !category) { setError("Select a category to continue."); return; }
@@ -322,7 +324,10 @@ export default function NewReport() {
             <Button
               variant="outline"
               className="w-full rounded-full"
-              onClick={() => exportReportPDF(incidentForPdf, attachments)}
+              onClick={() => {
+                exportReportPDF(incidentForPdf, attachments);
+                setShowPdfNotice(true);
+              }}
             >
               <Download className="mr-2 h-4 w-4" /> Export PDF now
             </Button>
@@ -355,6 +360,8 @@ export default function NewReport() {
           )}
         </div>
       </div>
+
+      <PdfSafetyNotice open={showPdfNotice} onOpenChange={setShowPdfNotice} />
     </div>
   );
 }
