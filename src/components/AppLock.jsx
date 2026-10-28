@@ -32,6 +32,17 @@ function getStoredName() {
   try { return localStorage.getItem(NAME_KEY) || ""; } catch { return ""; }
 }
 
+let persistRequested = false;
+async function requestPersistentStorage() {
+  if (persistRequested) return;
+  persistRequested = true;
+  try {
+    await navigator.storage?.persist?.();
+    const persisted = await navigator.storage?.persisted?.();
+    console.info("[Sentinel] Persistent storage granted:", persisted);
+  } catch {}
+}
+
 function Dots({ display, shake }) {
   return (
     <div className={cn("mt-6 flex gap-3", shake && "animate-[shake_0.4s]")}>
@@ -102,6 +113,13 @@ export default function AppLock() {
     biometricAvailable().then(setBioSupported);
     setBioOn(biometricEnabled());
   }, []);
+
+  // After any successful unlock, ask the browser once to keep this site's data
+  // (PIN, wrapped keys, attachments) instead of clearing it when the device is
+  // low on space. The result is ignored; browsers may silently say no.
+  useEffect(() => {
+    if (unlocked) requestPersistentStorage();
+  }, [unlocked]);
 
   // Auto-lock: wipe the DEK and return to the PIN screen after 3 minutes of
   // inactivity, or immediately when the tab is backgrounded/hidden.
