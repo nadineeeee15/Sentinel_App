@@ -79,8 +79,8 @@ export default function Profile() {
     setStoredPin(pin);
     setPinSet(true);
     setSettingPin(false);
-    setMsg("The PIN has been reset.");
-    toast({ title: "The PIN has been reset." });
+    setMsg("Your PIN has been changed.");
+    toast({ title: "Your PIN has been changed." });
     try {
       if (hasWrappedDek() && hasSessionKey()) {
         await changePinEncryption(pin);
