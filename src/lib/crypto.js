@@ -23,6 +23,10 @@ const BIO_DEK_IV_KEY = "sentinel_bio_dek_iv";
 const PBKDF2_ITERATIONS = 100000;
 
 let sessionKey = null; // CryptoKey (DEK) held in memory while unlocked
+// Older DEKs found on this device that differ from the current one (e.g. a
+// biometric-only DEK from before the key-sync fix). Used for decryption only,
+// never for encryption, so older reports stay readable. Wiped on lock.
+let fallbackKeys = [];
 
 export function cryptoAvailable() {
   return typeof window !== "undefined" && !!window.crypto?.subtle;
@@ -39,6 +43,15 @@ export function setSessionKey(key) {
 }
 export function clearSessionKey() {
   sessionKey = null;
+  fallbackKeys = [];
+}
+
+async function sameKey(a, b) {
+  const [ra, rb] = await Promise.all([
+    crypto.subtle.exportKey("raw", a),
+    crypto.subtle.exportKey("raw", b),
+  ]);
+  return bufToB64(ra) === bufToB64(rb);
 }
 
 // --- base64 helpers ---
@@ -127,10 +140,12 @@ export async function generateSessionDek() {
   return true;
 }
 
-// First-time PIN setup: create a fresh DEK, wrap it under the PIN, persist.
+// PIN setup: wrap the current DEK (or a fresh one) under the PIN, persist.
 export async function setupNewPinEncryption(pin) {
   if (!cryptoAvailable()) return false;
-  await generateSessionDek();
+  // Reuse the DEK already in memory (e.g. one created by biometric setup) so
+  // existing reports stay readable. Only create a new key when there is none.
+  if (!hasSessionKey()) await generateSessionDek();
   const dek = getSessionKey();
   const salt = randomBytes(16);
   const iv = randomBytes(12);
@@ -157,10 +172,14 @@ export async function unlockWithPin(pin) {
       { name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]
     );
     setSessionKey(dek);
-    // Re-sync the biometric wrap to the PIN-unwrapped DEK so a report
-    // encrypted after a biometric unlock stays readable via PIN too.
-    if (hasBiometricWrappedDek()) {
-      await wrapDekForBiometric(dek).catch(() => {});
+    // Previously this overwrote the biometric-wrapped DEK with the PIN one,
+    // which destroyed the biometric key if the two had diverged. Now, if the
+    // biometric DEK differs, keep it in memory as a decrypt-only fallback so
+    // reports encrypted under it remain readable, and leave it untouched.
+    const bioDek = await loadBiometricDek().catch(() => null);
+    if (bioDek && !(await sameKey(dek, bioDek))) {
+      fallbackKeys = [bioDek];
+      console.warn("[Sentinel] PIN and biometric keys differ; using biometric key as decrypt fallback.");
     }
     return true;
   } catch {
@@ -250,23 +269,29 @@ export async function enableBiometricEncryption() {
   return true;
 }
 
-// Biometric unlock: unwrap the bio-wrapped DEK into memory.
-export async function unlockWithBiometric() {
-  if (!cryptoAvailable()) return false;
+// Unwrap the bio-wrapped DEK without changing session state.
+async function loadBiometricDek() {
   let w, iv;
   try {
     w = localStorage.getItem(BIO_WRAPPED_DEK_KEY);
     iv = localStorage.getItem(BIO_DEK_IV_KEY);
   } catch {
-    return false;
+    return null;
   }
-  if (!w || !iv) return false;
+  if (!w || !iv) return null;
+  const kek = await getBioKek();
+  return crypto.subtle.unwrapKey(
+    "raw", b64ToBytes(w), kek, { name: "AES-GCM", iv: b64ToBytes(iv) },
+    { name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]
+  );
+}
+
+// Biometric unlock: unwrap the bio-wrapped DEK into memory.
+export async function unlockWithBiometric() {
+  if (!cryptoAvailable()) return false;
   try {
-    const kek = await getBioKek();
-    const dek = await crypto.subtle.unwrapKey(
-      "raw", b64ToBytes(w), kek, { name: "AES-GCM", iv: b64ToBytes(iv) },
-      { name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]
-    );
+    const dek = await loadBiometricDek();
+    if (!dek) return false;
     setSessionKey(dek);
     return true;
   } catch {
@@ -321,8 +346,16 @@ export async function decryptText(stored) {
   if (!parsed || !parsed.encrypted || !parsed.iv || !parsed.ciphertext) {
     return stored; // not an encrypted envelope — plain text
   }
-  const pt = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: b64ToBytes(parsed.iv) }, sessionKey, b64ToBytes(parsed.ciphertext)
-  );
-  return new TextDecoder().decode(pt);
+  const iv = b64ToBytes(parsed.iv);
+  const ct = b64ToBytes(parsed.ciphertext);
+  let lastErr;
+  for (const key of [sessionKey, ...fallbackKeys]) {
+    try {
+      const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct);
+      return new TextDecoder().decode(pt);
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr;
 }
