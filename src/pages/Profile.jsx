@@ -10,7 +10,7 @@ import { base44 } from "@/api/base44Client";
 import {
   biometricAvailable, enableBiometric, biometricEnabled, disableBiometric,
 } from "@/lib/biometric";
-import { setStoredPin, PIN_KEY } from "@/lib/pin";
+import { setStoredPin, clearStoredPin, resetPinFailures, PIN_KEY } from "@/lib/pin";
 import {
   setupNewPinEncryption, changePinEncryption, hasWrappedDek, hasSessionKey,
   enableBiometricEncryption, removeBiometricWrappedDek, clearWrappedDek, clearSessionKey,
@@ -83,7 +83,8 @@ export default function Profile() {
   }
 
   async function saveNewPin(pin) {
-    setStoredPin(pin);
+    await setStoredPin(pin);
+    resetPinFailures();
     setPinSet(true);
     setSettingPin(false);
     setMsg("Your PIN has been changed.");
@@ -115,7 +116,8 @@ export default function Profile() {
       clearWrappedDek();
       clearSessionKey();
       disableBiometric();
-      try { localStorage.removeItem(PIN_KEY); } catch {}
+      clearStoredPin();
+      resetPinFailures();
       try { localStorage.removeItem(NAME_KEY); } catch {}
       await base44.auth.logout("/login");
     } catch {
