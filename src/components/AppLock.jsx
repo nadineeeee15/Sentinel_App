@@ -16,19 +16,25 @@ import {
 import { migrateLegacyAttachments } from "@/lib/attachments";
 import { useAutoLock } from "@/hooks/useAutoLock";
 import { DISCLAIMER } from "@/lib/disclaimer";
+import {
+  getStoredPin, setStoredPin, verifyPin, clearStoredPin,
+  pinLockRemainingMs, recordFailedPin, resetPinFailures,
+} from "@/lib/pin";
 
 const NAME_KEY = "sentinel_user_name";
-const PIN_KEY = "sentinel_app_pin";
 
-function hashPin(pin) {
-  let h = 5381;
-  for (let i = 0; i < pin.length; i++) h = (h * 33) + pin.charCodeAt(i);
-  return String(h >>> 0);
+function formatWait(ms) {
+  const s = Math.ceil(ms / 1000);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
-function getStoredPin() {
-  try { return localStorage.getItem(PIN_KEY); } catch { return null; }
+function describeWait(ms) {
+  const s = Math.ceil(ms / 1000);
+  if (s < 60) return `${s} seconds`;
+  const m = Math.round(s / 60);
+  return m === 1 ? "1 minute" : `${m} minutes`;
 }
+
 function getStoredName() {
   try { return localStorage.getItem(NAME_KEY) || ""; } catch { return ""; }
 }
@@ -60,14 +66,15 @@ function Dots({ display, shake }) {
   );
 }
 
-function Keypad({ onPress, onDel }) {
+function Keypad({ onPress, onDel, disabled = false, dimmed = false }) {
   const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
   return (
-    <div className="mt-6 grid grid-cols-3 gap-3">
+    <div className={cn("mt-6 grid grid-cols-3 gap-3", dimmed && "opacity-40")}>
       {keys.map((k) => (
         <button
           key={k}
           onClick={() => onPress(k)}
+          disabled={disabled}
           className="flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xl font-semibold text-slate-800 shadow-sm transition active:scale-95 hover:bg-violet-50"
         >
           {k}
@@ -76,12 +83,14 @@ function Keypad({ onPress, onDel }) {
       <div />
       <button
         onClick={() => onPress("0")}
+        disabled={disabled}
         className="flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xl font-semibold text-slate-800 shadow-sm transition active:scale-95 hover:bg-violet-50"
       >
         0
       </button>
       <button
         onClick={onDel}
+        disabled={disabled}
         className="flex h-16 w-16 items-center justify-center rounded-2xl text-slate-500 transition active:scale-95 hover:bg-violet-50"
       >
         <Delete className="h-6 w-6" />
@@ -104,6 +113,22 @@ export default function AppLock() {
   const [busy, setBusy] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
   const [bioPrompt, setBioPrompt] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [lockMs, setLockMs] = useState(pinLockRemainingMs);
+  const [lockTotalMs, setLockTotalMs] = useState(pinLockRemainingMs);
+
+  const locked = lockMs > 0;
+
+  // Tick the lockout countdown once a second until it runs out.
+  useEffect(() => {
+    if (!locked) return;
+    const t = setInterval(() => {
+      const left = pinLockRemainingMs();
+      setLockMs(left);
+      if (left <= 0) clearInterval(t);
+    }, 1000);
+    return () => clearInterval(t);
+  }, [locked]);
 
   useEffect(() => {
     const storedName = getStoredName();
@@ -153,8 +178,9 @@ export default function AppLock() {
         setConfirmPin(next);
         if (next.length === 4) {
           if (next === pin) {
-            try { localStorage.setItem(PIN_KEY, hashPin(next)); } catch {}
             setUnlocking(true);
+            await setStoredPin(next);
+            resetPinFailures();
             try { await setupNewPinEncryption(next); } catch {}
             setUnlocking(false);
             if (bioSupported && !biometricEnabled()) {
@@ -168,10 +194,15 @@ export default function AppLock() {
         }
       }
     } else {
+      if (checking || pinLockRemainingMs() > 0) return;
       const next = (pin + d).slice(0, 4);
       setPin(next);
       if (next.length === 4) {
-        if (hashPin(next) === getStoredPin()) {
+        setChecking(true);
+        const ok = await verifyPin(next).catch(() => false);
+        setChecking(false);
+        if (ok) {
+          resetPinFailures();
           setUnlocking(true);
           try {
             if (hasWrappedDek()) {
@@ -190,6 +221,11 @@ export default function AppLock() {
             setTimeout(() => { setShake(false); setPin(""); setError(""); }, 900);
           }
         } else {
+          const wait = recordFailedPin();
+          if (wait > 0) {
+            setLockMs(wait);
+            setLockTotalMs(wait);
+          }
           setError("Incorrect PIN.");
           setShake(true);
           setTimeout(() => { setShake(false); setPin(""); setError(""); }, 500);
@@ -235,6 +271,10 @@ export default function AppLock() {
       if (ok) {
         const dekOk = await unlockWithBiometric().catch(() => false);
         if (dekOk) {
+          // Face ID is the recovery path, so it works during a PIN lockout and
+          // counts as a successful unlock.
+          resetPinFailures();
+          setLockMs(0);
           await migrateLegacyAttachments().catch(() => {});
           setUnlocked(true);
         } else {
@@ -272,7 +312,9 @@ export default function AppLock() {
 
   function resetPin() {
     if (!confirm("Reset your PIN? This creates a new encryption key. Attachments and saved reports on this device that were encrypted with the old key can no longer be opened. Continue?")) return;
-    try { localStorage.removeItem(PIN_KEY); } catch {}
+    clearStoredPin();
+    resetPinFailures();
+    setLockMs(0);
     clearWrappedDek();
     disableBiometric();
     setBioOn(false);
@@ -418,7 +460,15 @@ export default function AppLock() {
       <p className="mt-1 text-sm text-slate-500">Enter your PIN to unlock</p>
       <Dots display={display} shake={shake} />
       {error && <p className="mt-4 text-sm font-medium text-rose-600">{error}</p>}
-      <Keypad onPress={press} onDel={del} />
+      {locked && (
+        <div className="mt-4 text-sm font-medium text-rose-600">
+          <p role="alert">
+            Too many wrong PINs. The keypad is locked for {describeWait(lockTotalMs)}.
+          </p>
+          <p aria-hidden="true" className="mt-1 text-2xl font-semibold tabular-nums">{formatWait(lockMs)}</p>
+        </div>
+      )}
+      <Keypad onPress={press} onDel={del} disabled={locked || checking} dimmed={locked} />
       {bioOn && (
         <button
           onClick={unlockBiometric}
