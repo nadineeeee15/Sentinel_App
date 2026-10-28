@@ -197,7 +197,8 @@ export default function AppLock() {
     setBusy(true); setError("");
     try {
       await enableBiometric();
-      await generateSessionDek();
+      // Only create a key if none is loaded, so biometric and PIN share one DEK.
+      if (!hasSessionKey()) await generateSessionDek();
       await enableBiometricEncryption();
       setBioOn(true);
       setUnlocked(true);
@@ -251,7 +252,7 @@ export default function AppLock() {
   }
 
   function resetPin() {
-    if (!confirm("Reset your PIN? Any locally stored attachments will be permanently lost, but your text reports remain on your account. Continue?")) return;
+    if (!confirm("Reset your PIN? This creates a new encryption key. Attachments and saved reports on this device that were encrypted with the old key can no longer be opened. Continue?")) return;
     try { localStorage.removeItem(PIN_KEY); } catch {}
     clearWrappedDek();
     disableBiometric();

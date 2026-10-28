@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { MapPin, CalendarDays, ChevronRight, FileText, Hash } from "lucide-react";
+import { MapPin, CalendarDays, ChevronRight, FileText, Hash, Lock } from "lucide-react";
 import { SeverityBadge, StatusBadge } from "./IncidentBadge";
 import { CATEGORY_LABELS } from "./CategorySelect";
 import { formatRelative } from "@/lib/dates";
@@ -23,12 +23,18 @@ export default function IncidentCard({ incident }) {
             <StatusBadge status={incident.status} />
           </div>
           <h3 className="mt-2 truncate text-[15px] font-semibold text-slate-900 dark:text-white">
-            {incident.title}
+            {incident._locked ? (
+              <span className="inline-flex items-center gap-1.5 text-slate-500 dark:text-violet-200/70">
+                <Lock className="h-3.5 w-3.5" /> Locked report
+              </span>
+            ) : (
+              incident.title
+            )}
           </h3>
           <p className="mt-0.5 text-xs text-slate-400 dark:text-violet-200/70">
             {CATEGORY_LABELS[incident.category] || incident.category}
           </p>
-          {incident.location && (
+          {!incident._locked && incident.location && (
             <p className="mt-1 flex items-center gap-1 truncate text-xs text-slate-500 dark:text-violet-200/70">
               <MapPin className="h-3.5 w-3.5 shrink-0" />
               {incident.location}
