@@ -5,6 +5,7 @@ import { Plus, Search, ShieldAlert, Loader2, MapPin, LifeBuoy, ShieldCheck, File
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import PixelDecor from "@/components/PixelDecor";
+import PeekCat from "@/components/PeekCat";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -113,12 +114,13 @@ export default function Home() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.16, duration: 0.4 }}
-            className="relative mt-1 text-sm text-violet-100"
+            className="relative mt-1 pr-16 text-sm text-violet-100"
           >
             Report what happened and stay safe.
           </motion.p>
 
-          <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="relative mt-4 grid grid-cols-2 gap-2">
+            <PeekCat className="absolute bottom-full right-4 h-[50px] w-[64px]" />
             <Link
               to="/new"
               className="flex items-center justify-center gap-2 rounded-2xl border border-white/25 bg-white/15 px-3 py-2.5 text-sm font-medium backdrop-blur-md transition hover:bg-white/25 active:scale-[0.98]"
